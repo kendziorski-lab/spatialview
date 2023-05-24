@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<html>
+
+<head>
+	<title>
+		SpatialView
+	</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width">
+
+	<!-- bootstrap -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet"
+		integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj"
+		crossorigin="anonymous"></script>
+
+	<link rel="stylesheet" href="static/css/jquery-ui.min.css">
+	<script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+	<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+
+
+	<script src="https://d3js.org/d3.v4.js"></script>
+	<script src="static/js/papaparse.min.js"></script>
+
+	<script src="https://cdn.jsdelivr.net/npm/d3-color@3"></script>
+	<script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3"></script>
+	<script src="https://cdn.jsdelivr.net/npm/d3-scale-chromatic@3"></script>
+
+	<script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>
+
+	<script>
+		const yellow = d3.interpolateYlGn(0);
+		const yellowGreen = d3.interpolateYlGn(0.5);
+		const green = d3.interpolateYlGn(1);
+	</script>
+
+</head>
+
+<body>
+	<div class="scrolling-wrapper">
+		<div class="row d-flex justify-content-center" id="sampleImages">
+			<div class="column">
+				<label for="dataPathSelect">
+					<!-- <img src="static/images/Spatial View-logos_transparent.png" id="loadSamples" /> -->
+					<img src="config/icon/icon.png"/>
+				</label>
+			</div>
+		</div>
+	</div>
+
+	<!-- Tabs navs -->
+	<ul class="nav nav-tabs" id="vizTab" role="tablist">
+		<li class="nav-item" role="presentation" onclick="imgContrainerTab()">
+			<a class="nav-link active" id="img-contrainer-tab" data-bs-toggle="tab" href="#img-container" role="tab"
+				aria-selected="true" aria-controls="img-container">Individual Analysis</a>
+		</li>
+		<li class="nav-item" role="presentation" onclick="groupAnalysisTab()">
+			<a class="nav-link" id="group-analysis-tab" href="#group-analysis" data-bs-toggle="tab" role="tab"
+				aria-controls="group-analysis" aria-selected="false">Group Analysis</a>
+		</li>
+		<li class="nav-item" role="presentation" onclick="dataTab()">
+			<a class="nav-link" id="data-tab" href="#data-info" data-bs-toggle="tab" role="tab" aria-controls="data-tab"
+				aria-selected="false">Data & Tutorial</a>
+		</li>
+	</ul>
+
+	<div class="tab-content" id="tabContent">
+		<div id="img-container" class="tab-pane fade show active justify-content-center" role="tabpanel"
+			aria-labelledby="img-contrainer-tab">
+			<div class="row">
+				<div class="d-flex col-xs-6 justify-content-center">
+					<div class="d-flex col-xs-4">
+						<i class='bi bi-vinyl' style="padding-left: 20px; padding-right: 5px;"
+						data-toggle="tooltip" data-placement="bottom"  title="Adjust spot size."></i>
+						<input type="range" class="form-range" min="1" max="5" value="3" id="pointRaius"
+						data-toggle="tooltip" data-placement="bottom"  title="Adjust spot size.">
+					</div>
+					<div class="d-flex col-xs-4">
+						<i class='bi bi-sun' style="padding-left: 20px; padding-right: 5px;"
+						data-toggle="tooltip" data-placement="bottom"  title="Adjust spot opacity."></i>
+						<input type="range" class="form-range" min="0" max="1" step="0.1" value="0.8" id="pointOpacity"
+						data-toggle="tooltip" data-placement="bottom"  title="Adjust spot opacity.">
+					</div>
+					<div class="d-flex col-xs-4">
+						<i class='bi bi-lightbulb' style="padding-left: 20px; padding-right: 5px;"
+						data-toggle="tooltip" data-placement="bottom"  title="Adjust tissue image brightness."></i>
+						<input type="range" class="form-range" min="0" max="1" step="0.1" value="0.0" id="imgOpacity"
+						data-toggle="tooltip" data-placement="bottom"  title="Adjust tissue image brightness.">
+					</div>
+					<div class="d-flex col-xs-4">
+						<i class='bi bi-chat-square' style="padding-left: 20px; padding-right: 5px;"
+						data-toggle="tooltip" data-placement="bottom"  title="Enable/Disable tooltip window."></i>
+						<div class="form-check form-switch">
+							<input class="form-check-input" type="checkbox" id="tooltipChecked" checked="checked"
+							data-toggle="tooltip" data-placement="bottom"  title="Enable/Disable tooltip window.">
+						</div>
+					</div>
+					<div class="d-flex col-xs-4">
+						<i class='bi bi-aspect-ratio' style="padding-left: 20px; padding-right: 5px;"
+						data-toggle="tooltip" data-placement="bottom"  title="Activate/Deactivate enlarged window."></i>
+						<div class="form-check form-switch">
+							<input class="form-check-input" type="checkbox" id="zoomChecked" checked="checked"
+							data-toggle="tooltip" data-placement="bottom"  title="Activate/Deactivate enlarged window.">
+						</div>
+					</div>
+					<div class="d-flex col-xs-4">
+						<i class='bi bi-link-45deg' style="padding-left: 20px; padding-right: 5px;"
+						data-toggle="tooltip" data-placement="bottom"  title="Activate/Deactivate genecards info when double clicked on a gene."></i>
+						<div class="form-check form-switch">
+							<input class="form-check-input" type="checkbox" id="genecardChecked" checked="checked"
+							data-toggle="tooltip" data-placement="bottom"  title="Activate/Deactivate genecards info when double clicked on a gene.">
+						</div>
+					</div>
+					<div class="d-flex col-xs-4">
+						<i class='bi bi-file-lock2' style="padding-left: 20px; padding-right: 5px;"
+						data-toggle="tooltip" data-placement="bottom"  title="Activate/Deactivate cluster selection lock."></i>
+						<div class="form-check form-switch">
+							<input class="form-check-input" type="checkbox" id="clustSelLock"
+							data-toggle="tooltip" data-placement="bottom"  title="Activate/Deactivate cluster selection lock.">
+						</div>
+					</div>
+					<div class="d-flex col-xs-4">
+						<i class='bi bi-mouse' style="padding-left: 20px; padding-right: 5px;"
+						data-toggle="tooltip" data-placement="bottom"  title="Activate/Deactivate quick mouseover on genes."></i>
+						<div class="form-check form-switch">
+							<input class="form-check-input" type="checkbox" id="mouseChecked1"
+							data-toggle="tooltip" data-placement="bottom"  title="Activate/Deactivate quick mouseover on genes.">
+						</div>
+					</div>
+					<div class="d-flex col-xs-4">
+						<i class='bi bi-pin-angle-fill' style="padding-left: 20px; padding-right: 5px;"
+						data-toggle="tooltip" data-placement="bottom"  title="pin/unpin searched gene."></i>
+						<div class="form-check form-switch">
+							<input class="form-check-input" type="checkbox" id="searchPin" checked="checked"
+							data-toggle="tooltip" data-placement="bottom"  title="pin/unpin searched gene.">
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="d-flex justify-content-center content" id="clusterButtons"></div>
+			</div>
+
+			<!-- freezeAndMarkershow-->
+			<div class="row">
+				<div class="col-3"></div>
+				<div class="col-6">
+					<div class="row">
+						<div class='col-2'>
+						</div>
+						<div class="col-8 unfreeze_show">
+							<input type="checkbox" class="btn-check" id="frozen" autocomplete="off" onclick="unfreezed();">
+							<label class="btn btn-warning" for="frozen">CLICK HERE TO UNFREEZE SELECTION</label>
+						</div>
+						<div class='col-2 bi bi-eraser' id="eraserGeneSel"
+									onclick="removeExpressions()" data-toggle="tooltip" data-placement="right"  title="Clean gene selection">
+						</div>
+					</div>
+				</div>
+				<div class="d-flex col-2 search-sample-analysis">
+					<input class="form-group-append" type="text" placeholder="Search gene.." value=""
+						id="searchSampleAnalysisTxt">
+					<span class="input-append">
+						<span class="btn btn-outline-primary ms-n3" type="button" onclick="searchSampleAnalysis();"
+							id="searchSampleAnalysisBtn">
+							<i class="bi bi-search"></i>
+						</span>
+					</span>
+				</div>
+				<div type="button" class="col-1" id="showHideClustInfo">
+					<span id='plus'>+</span>
+					<span id='minus'>-</span>
+					<span id='lableGenes'>Markers</span>
+				</div>
+			</div>
+
+			<div id="my_dataviz" class="row justify-content-center">
+				<div id="spotInfo" class="col-3">
+					<div id="sampleInfo"></div>
+					<div id="leftViz">
+						<div id="colorLegend" style="padding-left: 15px;"></div>
+						<div id="spotExprViz"></div>
+
+					</div>
+				</div>
+				<div class="col-6">
+					<svg id="svg">
+						<rect width="100%" height="100%" fill="#000000" opacity="0.0" id="imgOpacityRect" />
+					</svg>
+					<div id="currentGeneSel"></div>
+				</div>
+				<div class="col-3">
+					<div class="zoom_container hidden">
+						<span id="verticalLine" class="verticalLine"></span>
+						<span id="horizontalLine" class="horizontalLine"></span>
+						<img id="tissue_original" class="original" src="">
+					</div>
+					<div class="right-element" id="cards">
+						<div id="clustInfo" class="clustinfoScroll"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="tab-pane fade" id="group-analysis" role="tabpanel" aria-labelledby="group-analysis-tab">
+			<div class="group-analysis-tab-content">
+
+				<div>
+					<div class="d-flex col-xs-6 justify-content-center">
+						<div class="d-flex col-xs-4" data-toggle="tooltip" data-placement="bottom"  title="Drag to change number of groups.">
+							<label for="numGroups" class="form-label txt">Groups</label>
+							<input type="range" class="form-range" min="1" max="6" value="2" id="numGroups"
+								oninput="this.nextElementSibling.value = this.value"
+								onchange="updateGroupsNums(this.value)">
+							<output>2</output>
+						</div>
+						<div class="d-flex col-xs-2">
+							<div class='bi bi-trash' style="padding-left: 20px; padding-right: 5px;"
+								onclick="cleanGroups()" data-toggle="tooltip" data-placement="bottom"  title="Clear group selections."></div>
+							<div class='bi bi-mouse' style="padding-left: 20px; padding-right: 5px;"
+							data-toggle="tooltip" data-placement="bottom"  title="Activate/Deactivate quick mouseover on genes."></div>
+							<div class="form-check form-switch">
+								<input class="form-check-input" type="checkbox" id="mouseChecked" 
+								data-toggle="tooltip" data-placement="bottom"  title="Activate/Deactivate quick mouseover on genes.">
+							</div>
+						</div>
+						<div class="d-flex col-xs-4 right-element-group"></div>
+					</div>
+					<div class="row justify-content-center">
+						<div class="col-8">
+							<!-- Contains grouping areas -->
+							<div id="compGroupArea" class="row justify-content-center"></div>
+							<div id="detestrun" class="row justify-content-right">
+								<div id="DESidepanel" class="sidepanel">
+									<div style="margin-left:30px">
+									<a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+									<div class="form-group row justify-content-center" 
+									data-toggle="tooltip" data-placement="bottom"  
+									title="At least a single sample required to have expressed more than this value.">
+										<label for="minMeanExp" class="col-sm-6 col-form-label">Min. Avg. Expression</label>
+										<div class="col-sm-4">
+											<input type="number" class="form-control" id="minMeanExp" placeholder="Min. Avg. Expression" value="1.0" min="0.0">
+										</div>
+									</div>
+									<div class="form-group row justify-content-center" 
+									data-toggle="tooltip" data-placement="bottom"  
+									title="Minimum log 2-fold change required to test.">
+										<label for="minLogFC" class="col-sm-6 col-form-label">Min. Log 2-Fold Change</label>
+										<div class="col-sm-4">
+											<input type="number" class="form-control" id="minLogFC" placeholder="Minimum log 2-fold change" value="1.0" min="0.0">
+										</div>
+									</div>
+									<!-- <div class="form-group row justify-content-center">
+										<label for="pCutOff" class="col-sm-6 col-form-label">p-value cutoff</label>
+										<div class="col-sm-4">
+											<input type="input" class="form-control" id="pCutOff" placeholder="0.001" value = "0.001">
+										</div>
+									</div> -->
+									<div class="form-group row justify-content-center">
+										<div class="col-sm-8" style="margin-top: 10px;">
+											<button type="button" class="btn btn-secondary" title="Run t-Test" onclick="runDETest();">Run and Download</button>
+										</div>
+									</div>
+									<div class="row justify-content-center">
+										<div class="col-sm-11" style=" padding-left: 0px; padding-right: 0px;">
+											<p class="tTestMsg"><br><em><b>Note:</b> t-Test will be carried out using pseudobulk (average expression for each sample) expressions. 
+												Minimum 3 samples required in a group and minimum 2 samples required in other group.<br> 
+												The p-values are adjusted based on the Bonferroni correction using all genes in the dataset.</em></p>
+											<p style="color:red;">
+												<b>Warning:</b> This process may take a while and browser may be frozen during processing.
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+								<div class="col-xs-3" style="margin-left:auto;">
+									<button type="button" onclick="openNav();" class="btn btn-link link-secondary">Run t-Test </button>
+								</div>
+								<div class="col-xs-9"></div>
+							</div>
+							
+							<ul class="nav nav-tabs" id="grpVizTab" role="tablist">
+								<li class="nav-item" role="presentation" onclick="heatContainerTab()">
+									<a class="nav-link active" id="heat-container-tab" href="#heat-container"
+										data-bs-toggle="tab" role="tab" aria-controls="heat-container"
+										aria-selected="false">Heatmap</a>
+								</li>
+								<li class="nav-item" role="presentation" onclick="boxContrainerTab()">
+									<a class="nav-link" id="box-contrainer-tab" data-bs-toggle="tab"
+										href="#box-container" role="tab" aria-selected="true"
+										aria-controls="box-container">Box Plot</a>
+								</li>
+							</ul>
+							<div class="tab-content" id="tabContent3">
+								<div id="grp-box-container" class="tab-pane fade show active justify-content-center"
+									role="tabpanel" aria-labelledby="box-container">
+									<div class="row justify-content-center">
+										<div id="groupDatavizBox" class="col-11"></div>
+									</div>
+								</div>
+								<div id="grp-heat-container" class="tab-pane fade show active justify-content-center"
+									role="tabpanel" aria-labelledby="heat-container">
+									<div class="row justify-content-center">
+										<div id="groupDatavizHeat" class="col-11"></div>
+									</div>
+									<div class=" row d-flex justify-content-center" id="grpCompareStats" style="visibility: hidden">
+										<div class="col-lg-11">
+											<table class="table text-lg-start" id="testResTbl">
+												<thead>
+													<tr>
+														<th>Pairwise t-Test</th>
+														<th></th>
+														<th></th>
+														<th></th>
+													</tr>
+												</thead>
+												<tbody>
+												  <tr>
+													<th>Compare</th>
+													<th>Estimates</th>
+													<th></th>
+													<th>Adj. p-Value</th>
+												  </tr>
+												</tbody>
+											</table>
+										</div>
+										<div class="row justify-content-center">
+											<div class="col-lg-11">
+												<p class="tTestMsg"><em><b>Note:</b> Above computation is performed taking pseudobulk (average expression for each sample) expression. 
+													The p-values are adjusted based on the Bonferroni correction using all genes in the dataset.</em></p>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+						</div>
+						<div class="col-4">
+							<div class="d-flex search-group-analysis">
+								<input class="form-group-append" type="text" placeholder="Search gene.." value=""
+									id="searchGroupAnalysisTxt">
+								<span class="input-append">
+									<span class="btn btn-outline-primary ms-n3" type="button"
+										onclick="searchGroupAnalysis()" id="searchGroupAnalysisBtn">
+										<i class="bi bi-search"></i>
+									</span>
+								</span>
+								<span style="display: flex; align-items: center;">
+									<label for="csvPicker" data-toggle="tooltip" data-placement="bottom"  title="Upload csv file containing genes. No formatting required.">
+										<i class="bi bi-file-earmark-plus"></i>
+										Upload...</label>
+									<input type="file" accept=".csv", id="csvPicker">
+									</span>
+							</div>
+							<div class="right-element" id="cards-group">
+								<!-- Tabs for DE genes -->
+								<ul class="nav nav-tabs" id="DEGenesTab" role="tablist">
+									
+								</ul>
+								<div class="tab-content" id="tabContent2"></div>
+							</div>
+						</div>
+
+					</div>
+				</div>
+				<!-- Create a div where the graph will take place -->
+
+			</div>
+		</div>
+
+		<!-- DATA TAB -->
+		<div class="tab-pane fade" id="data-info" role="tabpanel" aria-labelledby="data-tab">
+			<div class="data-tab-content">
+				<p>
+				<div class="row">
+					<div id="instructions" class="col-6">
+						Spatial Transciptomic (ST) data from 10x experiments can be visualized in <b>SpatialView</b> multiple ways.
+						<h3>From R</h3>
+							If the ST data is analyzed in R environment, then it's suggested to use <i>SpatialViewR</i> package. 
+							For using <i>SpatialViewR</i>, please follow <u>TODO</u>
+						<h3>From Python</h3>
+							If the ST data is analyzed in Python environment, then it's suggested to use <i>SpatialViewPy</i> package. 
+							For using <i>SpatialViewPy</i>, please follow <u>TODO</u>
+						<h3>Code from GitHub</h3>
+						<b>SpatialView</b> application can be downloaded from <a href="/" target="_blank"
+							rel="noopener noreferrer" id="repolink1">Github</a>, and can be run in local machine by following steps. 
+							Note that, application can run from any http server, however the following steps assume that Python is installed on the local machine and the application runs in Python htt.server. 
+
+						<li>Download the file from <a target="_blank" rel="noopener noreferrer" id="repolink2" href="/">here</a> to your local
+							system and Unzip the folder.</li>
+
+						<li>Place your processed data in the data folder.</li>
+							<br/>Each sample should have its own directory and may contain following files for a sample:
+							<ol type="1">
+								<li>Expression matrix:</li>
+									<i>Option 1 - Sparse matrix</i> (preferred): compressed sparse column-oriented (CSC) format, barcodes.csv, genes.csv <br/>
+									<i>Option 2 - Dense matrix:</i> a csv file with barcodes as columns and genes name in an additional column
+								<li>cluster_info.csv:</li> columns are "cluster","color","name","genes"
+								<li>metadata.csv:</li> A csv file, each row represents a barcodes. A column containing cluster membership is expected
+								<li>sample_info.csv:</li> A csv file with sample level metadata information
+								<li>scalefactors_json.json:</li> Scale factor file from cellranger output
+								<li>tissue_hires_image.png</li> High resolution H&E image from cellranger output
+
+								<br/> 
+							</ol>
+
+						<li>Using the terminal window go to the unzipped folder (use the cd command in the terminal
+							window to change the folder).</li>
+
+						<li>Then run the following command</li>
+
+						<code>python -m http.server 8000</code>
+
+						<li>Then, using your Google Chrome browser, open <a href="http://localhost:8000/"
+								target="_blank" rel="noopener noreferrer">http://localhost:8000 </a></li>
+					</div>
+					<div class="col-4 embed-responsive embed-responsive-16by9">
+						<iframe class="embed-responsive-item" id="tutorial_link" src=""
+							allowfullscreen style="width: 400px; height: 250px;"></iframe>
+						<p>Tutorial: Features of the application and how to use.
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<br/>
+						<h4>FAQ</h4>
+						
+						<a href="">Visit FAQ</a> documentation in GitHub.
+						<br/>
+						If you face any problem or have questions, please <a href=""> raise an issue in GitHub </a>. 
+					</div>
+				</div>
+				<div class="row">
+					<div class="contents col-md-6">
+						<br/>
+						<h4>Citation</h4>
+						<pre>
+						@Article{author = {Chitrasen Mohanty, Lingxin Cheng,..., Bridget E. Shields, Aman Prasad, Beth Drolet, Christina Kendziorski},
+						title = {SpatialView: An interactive web application for visualization of multiple samples in spatial transcriptomics experiments},
+						journal = {TODO},
+						year = {2023},
+						doi = {TODO},
+						url = {TODO}
+						}
+						</pre>
+						<br/>
+					</div>
+				</div>
+				<div class="d-flex row">
+	  				<div class="d-flex col-xs-8">
+						<div id="dataInfoContent"></div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+
+	<div class="form-group" id="sample_infoBox" style="display:none" onmouseleave="hideSampleInfo()"></div>
+	<div class="form-group" style="float:left; position:fixed; bottom:0; left:0;">
+		<img src="static/images/using.png" width="100px">
+	</div>
+	<!-- </div> -->
+	<div class="form-group" style="float:right; position:fixed; bottom:0; right:0;">
+		<div class="col-xs-4 col-sm-4 col-md-4 col-lg-4" id="citeText" onmouseleave="hideCiteInfo()"
+			style="display:none">
+			<p><b><span id="cite_title"></span></b></p>
+			<p><span id="cite_authors"></span></p>
+			<p><a href="" id="cite_link" target="_blank" rel="noopener noreferrer"></a>
+		</div>
+	</div>
+	<div class="form-group btn-cite">
+		<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+			<span type="submit" class="btn btn-outline-dark btn-md" id="citeBtn"
+				onmouseover="showCiteInfo()">[Cite]</span>
+		</div>
+	</div>
+	<div class="form-group loading-msg">
+		<div class="alert alert-primary animate__animated animate__slideInLeft" role="alert" id="dataAlert"
+			style="display:none">
+			Data loading...It may take a few minutes.
+			<p><i>If browser is slow, then data might be still loading in the background.</i>
+			<p><i>Please wait for a few seconds.</i>
+		</div>
+	</div>
+	<div class="form-group animate__animated loaded-msg">
+		<div class="alert alert-primary dataloadedAlertOn" role="alert" id="dataAlertLoaded" style="display:none">
+			<span id="dataloadedAlert"></span>
+		</div>
+	</div>
+
+</body>
+
+<link rel="stylesheet" href="static/css/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+<script src="https://unpkg.com/simple-statistics@7.7.6/dist/simple-statistics.min.js"></script>
+<script src="https://unpkg.com/lib-r-math.js@1.0.89/dist/lib/libR.min.js"></script>
+<script>
+	const libR = window.libR;
+	const seq = libR.R.seq()();
+	const precision = libR.R.numberPrecision(4);
+  	//fetch some distribution namespaces
+  	const {Normal, StudentT, Wilcoxon } = libR;
+	const { dt, pt, qt, rt } = StudentT();
+</script>
+
+<script type="text/javascript" src="static/js/application_script.js"></script>
+
+<!-- table sorting -->
+<link rel="stylesheet" href="static/css/theme.default.min.css">
+<script type="text/javascript" src="static/js/jquery.tablesorter.min.js"></script>
+
+</html>
