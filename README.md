@@ -7,17 +7,18 @@ SpatialView is a web browser-based interactive application to visualize 10x spat
 
 Spatial Transciptomic (ST) data from 10x experiments can be visualized in SpatialView multiple ways.
 
-## From R
-If the ST data is analyzed in R environment, then it's suggested to use SpatialViewR package. 
+### From R
+To run SpatialView from R environment you may use ![SpatialViewR](https://github.com/kendziorski-lab/SpatialViewR) package. 
+Currently ![SpatialViewR](https://github.com/kendziorski-lab/SpatialViewR) supports *Seurat* and *SpatialExperiment*.
 
-For using SpatialViewR, please follow TODO
+- ![A step by step guide to export data from Seurat object](https://kendziorski-lab.github.io/projects/spatialview/SpatialView_Tutorial_Using_Seurat.html)
+- ![A step by step guide to export data from SpatialExperiment](https://kendziorski-lab.github.io/projects/spatialview/SpatialView_Tutorial_Using_SpatialExperiment.html)
+### From Python
+To run SpatialView from python environment you may use ![SpatialViewPy](https://github.com/kendziorski-lab/SpatialViewPy).
 
-## From Python
-If the ST data is analyzed in Python environment, then it's suggested to use SpatialViewPy package. 
+- ![A step by step guide to export data from Scanpy object](https://kendziorski-lab.github.io/projects/spatialview/SpatialView_Tutorial_Using_Scanpy.html)
 
-For using SpatialViewPy, please follow TODO
-
-## Code from GitHub
+### Code from GitHub
 SpatialView application can be downloaded from GitHub, and can be run in local machine by following steps. Note that, application can run from any http server, however the following steps assume that Python is installed on the local machine and the application runs in Python htt.server.
 Download the file from here to your local system and Unzip the folder.
 Place your processed data in the data folder.
@@ -44,3 +45,5 @@ Using the terminal window go to the unzipped folder (use the cd command in the t
 ``python -m http.server 8000``
 
 Then, using your browser (Google Chrome is preferred), open *http://localhost:8000*
+
+## FAQ

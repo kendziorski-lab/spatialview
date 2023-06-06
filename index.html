@@ -147,7 +147,7 @@
 
 			<!-- freezeAndMarkershow-->
 			<div class="row">
-				<div class="col-3"></div>
+				<div class="col-3"></div>x
 				<div class="col-6">
 					<div class="row">
 						<div class='col-2'>
@@ -378,13 +378,20 @@
 				<div class="row">
 					<div id="instructions" class="col-6">
 						Spatial Transciptomic (ST) data from 10x experiments can be visualized in <b>SpatialView</b> multiple ways.
-						<h3>From R</h3>
-							If the ST data is analyzed in R environment, then it's suggested to use <i>SpatialViewR</i> package. 
-							For using <i>SpatialViewR</i>, please follow <u>TODO</u>
-						<h3>From Python</h3>
-							If the ST data is analyzed in Python environment, then it's suggested to use <i>SpatialViewPy</i> package. 
-							For using <i>SpatialViewPy</i>, please follow <u>TODO</u>
-						<h3>Code from GitHub</h3>
+						<h4>From R</h4>
+							To run SpatialView from R environment you may use <a href="https://github.com/kendziorski-lab/SpatialViewR"><i>SpatialViewR</i></a> package. 
+							Currently <a href="https://github.com/kendziorski-lab/SpatialViewR"><i>SpatialViewR</i></a> supports <i>Seurat</i> and <i>SpatialExperiment</i>.
+							 <ul>
+								<li><a href="https://kendziorski-lab.github.io/projects/spatialview/SpatialView_Tutorial_Using_Seurat.html">A step by step guide to export data from <i>Seurat</i> object</a></li>
+								<li><a href="https://kendziorski-lab.github.io/projects/spatialview/SpatialView_Tutorial_Using_SpatialExperiment.html">A step by step guide to export data from <i>SpatialExperiment</i> object</a></li>
+							 </ul>
+						<h4>From Python</h4>
+						To run SpatialView from python environment you may use <a href="https://github.com/kendziorski-lab/SpatialViewPy"><i>SpatialViewPy</i></a> package. 
+						Currently <a href="https://github.com/kendziorski-lab/SpatialViewPy"><i>SpatialViewPy</i></a> supports <i>Scanpy</i>.
+						 <ul>
+							<li><a href="https://kendziorski-lab.github.io/projects/spatialview/SpatialView_Tutorial_Using_Scanpy.html">A step by step guide to export data from <i>Scanpy</i> object</a></li>
+						 </ul>
+						<h4>Code from GitHub</h4>
 						<b>SpatialView</b> application can be downloaded from <a href="/" target="_blank"
 							rel="noopener noreferrer" id="repolink1">Github</a>, and can be run in local machine by following steps. 
 							Note that, application can run from any http server, however the following steps assume that Python is installed on the local machine and the application runs in Python htt.server. 
@@ -428,17 +435,17 @@
 						<br/>
 						<h4>FAQ</h4>
 						
-						<a href="">Visit FAQ</a> documentation in GitHub.
+						Please Visit FAQ sections in <a href="https://github.com/kendziorski-lab/spatialview">Github</a>.
 						<br/>
-						If you face any problem or have questions, please <a href=""> raise an issue in GitHub </a>. 
+						If you face any problem or have questions, please <a href=""> raise an issue in <a href="https://github.com/kendziorski-lab/spatialview/issues">GitHub </a>. 
 					</div>
 				</div>
 				<div class="row">
-					<div class="contents col-md-6">
+					<div class="contents col-md-12">
 						<br/>
 						<h4>Citation</h4>
 						<pre>
-						@Article{author = {Chitrasen Mohanty, Lingxin Cheng,..., Bridget E. Shields, Aman Prasad, Beth Drolet, Christina Kendziorski},
+						@Article{author = {Chitrasen Mohanty, Aman Prasad, Lingxin Cheng, Lisa M. Arkin, Bridget E. Shields, Beth Drolet, Christina Kendziorski},
 						title = {SpatialView: An interactive web application for visualization of multiple samples in spatial transcriptomics experiments},
 						journal = {TODO},
 						year = {2023},
