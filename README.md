@@ -53,7 +53,7 @@ Then, using your browser (Google Chrome is preferred), open *http://localhost:80
 
 1. Can I change the web port?
 
-Yes. Port number 8878 is default port in the *prepare10x_from_seurat* and *prepare10x_from_SpatialExperiment* functions. You can pass a different port number in these functions.
+Yes. Port number 8878 is default port in the *prepare10x_from_seurat* and *prepare10x_from_SpatialExperiment* functions in [SpatialViewR](https://github.com/kendziorski-lab/SpatialViewR) package. You can pass a different port number in these functions.
 
 2. Once a port is used, I get 'port in use' error on my next run.
 
