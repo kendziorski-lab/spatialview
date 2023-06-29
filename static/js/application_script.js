@@ -442,6 +442,7 @@ var mouseover = function (d) {
       .style("opacity", 1)
       .style("left", (d3.event.pageX - app_config.tooltip_position_left) + "px")
       .style("top", (d3.event.pageY - app_config.tooltip_position_top) + "px")
+      .style("border-width", (app_config.tooltip_border_stroke_width)+ "px")
       .style("border-color", cluster_cols[d.cluster])
 
     if (!$('#frozen').is(':checked')) {

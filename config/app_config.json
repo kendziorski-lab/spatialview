@@ -3,6 +3,7 @@
  "tooltip_top_n":5,
  "tooltip_position_top":350,
  "tooltip_position_left":150,
+ "tooltip_border_stroke_width":3,
  "data_file_name_expressions":"expression_matrix.csv",
  "data_file_name_expressions_sparse":"expression_matrix_sparse.txt",
  "data_file_name_genes":"genes.csv",
@@ -25,7 +26,7 @@
  "dataAlert_timeout":10000,
  "cite_title":"SpatialView: An interactive web application for visualization of multiple samples in spatial transcriptomics experiments",
  "cite_authors":"Chitrasen Mohanty, Aman Prasad, Lingxin Cheng, Lisa M. Arkin, Bridget E. Shields, Beth Drolet, Christina Kendziorski",
- "cite_link":"paper link",
+ "cite_link":"https://doi.org/10.1101/2023.06.13.544836",
  "data_repo_text":"GitHub",
  "data_repo_link":"https://github.com/kendziorski-lab/spatialview",
  "tutorial_link":"https://www.youtube.com/embed/Y-x0efG1seA"
