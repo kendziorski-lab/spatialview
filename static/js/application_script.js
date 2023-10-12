@@ -1,24 +1,16 @@
 var dataAllPatients = {};
-
 var scaleResolutions = {};
 var sampleInfo = {};
-
 var spotExpressions = {}
-
 var clusterInfo = {}
-
 var selectedClusters = [];
 var highlightedClusters = [];
-
 var cluster_cols = {};
-
 var cluster_names = {};
-
 var global_current_gene = "";
 var global_current_barcode = "";
 var global_first_load = true;
 var app_config = {};
-
 var sampleGenes = [];
 
 //===================Warns user on window back/reload button click =========
@@ -56,8 +48,14 @@ $('#clustSelLock').prop("checked", app_config.cluster_lock_on)
 $('#mouseChecked').prop("checked", app_config.quick_mouseover_on)
 $('#mouseChecked1').prop("checked", app_config.quick_mouseover_on)
 $('#searchPin').prop("checked", app_config.pin_search_on)
-//===============  Application Configuration ends ==========
 
+// colorbar scale
+$('#colScaleDomainMin').prop("value", app_config.colorscale_domain[0])
+$('#colScaleDomainMax').prop("value", app_config.colorscale_domain[1])
+
+//TODO: Move meta config to config.json
+app_config.meta_key = "META/"
+//===============  Application Configuration ends ==========
 
 var getSpotExpressions = function (_sample_id, _barcode, _gene) {
   if (_sample_id in spotExpressions) {
@@ -66,7 +64,17 @@ var getSpotExpressions = function (_sample_id, _barcode, _gene) {
       if (_gene === null) return (spotExpressions[_sample_id][_barcode])
       if (_gene in spotExpressions[_sample_id][_barcode]) {
         return (parseFloat(spotExpressions[_sample_id][_barcode][_gene]))
-      } else {
+      } else if(_gene.indexOf(app_config.meta_key) == 0){
+        meta_col = _gene.substring(app_config.meta_key.length)
+        var meta_res = dataAllPatients[_sample_id].map(function (r) { if(r['barcode'] === _barcode) return r[meta_col] });
+        meta_res = meta_res.filter(Boolean)
+        if(meta_res.length === 1 & typeof meta_res[0] === "number"){
+          return(parseFloat(meta_res[0]));
+        }else{
+          return(0)
+        }
+      }
+      else {
         return (0)
       }
     } else {
@@ -119,9 +127,7 @@ function wrap(text, width) {
     }
   });
 }
-
 //---------------------------------------------------------------------
-
 var loadData = function (samples) {
   for (let j = 0; j < samples.length; j++) {
 
@@ -132,6 +138,7 @@ var loadData = function (samples) {
     item.classList.add("column");
     item.classList.add("tissue_image");
     item.classList.add("dataloading");
+    item.classList.add("pointer-click");
 
     let img = document.createElement("img");
     // img.classList.add("border");
@@ -166,7 +173,6 @@ var loadData = function (samples) {
     $.getJSON("data/" + data_id + '/' + app_config.data_file_name_scalefactor, function (data) {
       scaleResolutions[data_id] = data["tissue_hires_scalef"]
     });
-
 
     Papa.parse("data/" + data_id + '/' + app_config.data_file_name_sample_info, {
       skipEmptyLines: true,
@@ -416,7 +422,7 @@ var tooltipHTML = function (d) {
     s_tooltip = `${s_tooltip}<tr><td colspan=${topN.length}>${$('#currentGeneSel').text().trim()} : ${getSpotExpressions(sampleId, d.barcode, $('#currentGeneSel').text().trim())}</td></tr>`
     s_tooltip = s_tooltip + "<tr><td colspan=" + topN.length + "><hr></td></tr>"
   }
-  s_tooltip = s_tooltip + "<tr><td colspan=" + topN.length + "><i>Click on the spot to freeze selection.</i></td></tr>" + "</table>";
+  s_tooltip = s_tooltip + "<tr><td colspan=" + topN.length + "><i class='icofont-duotone icofont-location-alt'></i><i>&nbsp Click on the spot to freeze selection.</i></td></tr>" + "</table>";
 
   return (s_tooltip);
 }
@@ -452,7 +458,6 @@ var mouseover = function (d) {
     }
   }
 }
-
 
 var mousemove = function (d) {
   Tooltip
@@ -494,7 +499,6 @@ var unfreezed = function () {
       else { return "none" }
     })
     
-
   if (!$('#frozen').is(':checked')) {
     $(".btn-warning").hide();
   }
@@ -561,7 +565,7 @@ d3.select("#imgOpacity").on("input", function () {
     .transition()
     .duration(100)
     .ease(d3.easeLinear)
-    .style("opacity", d3.select("#imgOpacity").property("value"));
+    .style("opacity", 1-d3.select("#imgOpacity").property("value"));
 });
 
 function SVGBackground(url) {
@@ -570,13 +574,11 @@ function SVGBackground(url) {
     .transition()
     .duration(100)
     .ease(d3.easeLinear)
-    .style("opacity", d3.select("#imgOpacity").property("value"));
+    .style("opacity", 1-d3.select("#imgOpacity").property("value"));
 }
-
 
 updateImageBorder = function (sampleId) {
   d3.selectAll("img").classed("border-dark", false);
-
   d3.select("#" + sampleId).classed("border-dark", true);
 }
 
@@ -605,11 +607,13 @@ updateSampleGenes = function (sampleId) {
     sampleGenes = [...new Set([...sampleGenes, ...spot_genes])]
   }
   sampleGenes.sort();
-
+  var metaCols = Object.keys(dataAllPatients[sampleId][0])
+  metaCols = metaCols.map(metaCol => app_config.meta_key + metaCol);
+  var genes_with_meta = [...new Set([...sampleGenes, ...metaCols])]
   $("#searchSampleAnalysisTxt").autocomplete({
     delay: 100,
     minLength: 2,
-    source: sampleGenes
+    source: genes_with_meta
   });
 
   $("#searchGroupAnalysisTxt").autocomplete({
@@ -663,6 +667,43 @@ updateClusterInfo = function (sampleId) {
     }
   }
 
+  //Adding reload icon for cluster  selection
+  var relaodClustIcon = document.createElement('i')
+  relaodClustIcon.classList.add("icofont-duotone");
+  relaodClustIcon.classList.add("icofont-rebuild");
+  relaodClustIcon.classList.add("icofont-2x");
+  relaodClustIcon.classList.add("pointer-click");
+  relaodClustIcon.setAttribute("style", "margin-left: 1px; margin-right: 1px; margin-top: 1px; margin-bottom: 1px; vertical-align: middle;");
+  relaodClustIcon.setAttribute("data-toggle", "tooltip");
+  relaodClustIcon.setAttribute("data-placement", "bottom");
+  relaodClustIcon.setAttribute("title", "Reset");
+  relaodClustIcon.addEventListener("click", function(e){
+    selectedClusters_previous = [];
+    while(highlightedClusters.length > 0) {  
+        const c = highlightedClusters[0];
+        $('#' + c).click();
+        $('#' + c).click();
+    }
+
+    for (let c in clusterInfo[sampleId]) {
+      if (typeof c !== "undefined" & c !== null) {
+        if(! selectedClusters.includes("clust" + c )){
+          $('#clust' + c).click();
+        }
+      }
+    }
+
+    $({rotation: 360*!i}).animate({rotation: 360}, {
+      duration: 500,
+      step: function(now) {
+        $(relaodClustIcon).css({'transform' : 'rotate('+ now +'deg)'});
+      }
+    });
+    // i=!i;
+
+  })
+  allBtnDiv.appendChild(relaodClustIcon);
+
   let clustInfoDiv = document.getElementById("clustInfo");
   clustInfoDiv.innerHTML = "";
   //updating right side cluster markers info
@@ -677,6 +718,9 @@ updateClusterInfo = function (sampleId) {
 
       let cardH5 = document.createElement('h5')
       cardH5.classList.add("card-title");
+      cardH5.setAttribute("data-toggle", "tooltip");
+      cardH5.setAttribute("data-placement", "right");
+      cardH5.setAttribute("title", "Click on the gene names to see its expression.");
       cardH5.setAttribute("style", "color:" + clusterInfo[sampleId][c].color);
       cardH5.innerHTML = "Cluster" + c + " : " + clusterInfo[sampleId][c].name;
 
@@ -687,26 +731,42 @@ updateClusterInfo = function (sampleId) {
       if (c_genes !== null) { c_genes_list = c_genes.split(','); }
 
       for (var i = 0; i < c_genes_list.length; i++) {
-        c_gene = c_genes_list[i];
+        var c_gene = c_genes_list[i];
         var g_text = document.createElement('span');
+        g_text.classList.add("gene-text");
+        g_text.classList.add("pointer-click");
+        g_text.setAttribute("id", "right_"+c_gene.trim());
         g_text.addEventListener('mouseover', function (e) {
           e.target.style.color = "red";
+          e.target.style.fontWeight = 500;
+
+          $("#left_"+e.target.innerHTML.trim()).css("stroke", "black");
+          $("#left_"+e.target.innerHTML.trim()).css("opacity", 1);
+
           if ($('#mouseChecked1').is(':checked')) {
             showExpressions(sampleId, e.target.innerHTML);
           }
         });
+
         g_text.addEventListener('mouseout', function (e) {
           e.target.style.color = "black";
+          e.target.style.fontWeight = "normal";
           if ($('#mouseChecked1').is(':checked')) {
             removeExpressions();
           }
+          
+        $("#left_"+e.target.innerHTML.trim()).css("stroke", "#B0C4DE");
+        $("#left_"+e.target.innerHTML.trim()).css("opacity", 0.8);
         });
+
         g_text.addEventListener('click', function (e) {
           showExpressions(sampleId, e.target.innerHTML);
         });
+
         g_text.addEventListener('dblclick', function (e) {
           genecardPopup(e.target.innerHTML);
         });
+
         g_text.innerHTML = c_gene;
         cardP.appendChild(g_text);
       }
@@ -720,6 +780,9 @@ updateClusterInfo = function (sampleId) {
   //on button click show to hid spots
   d3.selectAll('button').on("click", function () {
     var btnClusterId = this.id;
+    if(btnClusterId === "undefined" | btnClusterId === null | btnClusterId.length < 5 | btnClusterId.substring(0,5) !== 'clust'){
+      return null;
+    }
     if (selectedClusters.includes(btnClusterId)) {
       // if highlighted then deactive
       if(highlightedClusters.includes(btnClusterId)){
@@ -934,19 +997,13 @@ var svgHeatmap = d3.select("#spotExprViz")
   .classed("svg-container", true) //container class to make it responsive
   .append("svg")
   .style("overflow", "visible")
-  //responsive SVG needs these 2 attributes and no width and height attr
-  // .attr("viewBox", "0 0 300 400")
-  //class to make it responsive
-  // .classed("svg-content-responsive", true) 
-  // .attr("width", widthHeatmap + marginHeatmap.left + marginHeatmap.right)
-  // .attr("height", heightHeatmap + marginHeatmap.top + marginHeatmap.bottom)
   .append("g")
   .attr("transform",
     "translate(" + marginHeatmap.left + "," + marginHeatmap.top + ")");
 
 // Build color scale
 var colorScale = d3.scaleSequential()
-  .interpolator(d3.interpolateYlOrRd)
+  .interpolator(eval("d3." + app_config.colorscale_heatmap_individual_analysis))
   .domain(app_config.colorscale_domain);
 
 var loadHeatmap = function (griddata) {
@@ -1003,22 +1060,28 @@ var loadHeatmap = function (griddata) {
         if (!$('#frozen').is(':checked')) {
           return d.gene;
         } else {
-          return d.gene + " : " + getSpotExpressions(sampleId, global_current_barcode, d.gene)
+          return d.gene + " : " + getSpotExpressions(sampleId, global_current_barcode, d.gene);
         }
       })
       .style("left", (d3.event.pageX - 20) + "px")
-      .style("top", (d3.event.pageY - 50) + "px")
+      .style("top", (d3.event.pageY - 50) + "px");
 
     showExpressions(sampleId, d.gene);
+
+    $("#right_"+d.gene.trim()).css("color","red");
+    $("#right_"+d.gene.trim()).css("fontWeight",500);
+    
   }
   var mouseleaveHeatmap = function (d) {
     tooltipHeatmap
       .style("opacity", 0)
     d3.select(this)
       .style("stroke", "#B0C4DE")
-      .style("opacity", 0.8)
+      .style("opacity", 0.8);
 
     removeExpressions(sampleId, d.gene);
+    $("#right_"+d.gene.trim()).css("color","black");
+    $("#right_"+d.gene.trim()).css("fontWeight","normal");
   }
 
   // add the squares
@@ -1032,10 +1095,12 @@ var loadHeatmap = function (griddata) {
     .attr("ry", 4)
     .attr("width", xScaleHeatmap.bandwidth())
     .attr("height", yScaleHeatmap.bandwidth())
+    .attr("id", function(d){return "left_"+d.gene.trim()})
     .style("fill", function (d) { return colorScale(d.expr) })
     .style("stroke-width", 1)
     .style("stroke", "#B0C4DE")
     .style("opacity", 0.8)
+    .attr("class", "pointer-click")
     .on("mouseover", mouseoverHeatmap)
     .on("mousemove", mousemoveHeatmap)
     .on("mouseleave", mouseleaveHeatmap)
@@ -1058,7 +1123,7 @@ var loadHeatmap = function (griddata) {
 
   // ----- showing color legend ------
   // The legend code used from https://stackoverflow.com/a/64807612/2374707
-  function legend({
+  var legend = function({
     color,
     title,
     legendContainer,
@@ -1250,8 +1315,33 @@ var loadHeatmap = function (griddata) {
     .attr("text-anchor", "left")
     .style("font-size", "10px")
     .style("fill", "grey")
-    .text(app_config.heatmap_note + app_config.colorscale_domain[1])
+    .text(app_config.heatmap_note + 
+      '['+app_config.colorscale_domain[0] + ',' + app_config.colorscale_domain[1] + ']')
     .call(wrap, 300);
+}
+
+
+// Change the colorscale color and reload heatmap
+var changeColorScale = function(domainMin, domainMax, clrScale){
+
+  if(domainMin !== "" & domainMin !== "undefined" & domainMin !== null){
+    app_config.colorscale_domain[0] = Number(domainMin);
+  }
+
+  if(domainMax !== "" & domainMax !== "undefined" & domainMax !== null){
+    app_config.colorscale_domain[1] = Number(domainMax);
+  }
+
+  if(clrScale !== "" & clrScale !== "undefined" & clrScale !== null){
+    app_config.colorscale_heatmap_individual_analysis = clrScale;
+  }
+  
+  colorScale = d3.scaleSequential()
+  .interpolator(eval("d3." + app_config.colorscale_heatmap_individual_analysis))
+  .domain(app_config.colorscale_domain);
+
+  closeColorSidePanel();
+  loadHeatmap(getGridData(sampleId))
 }
 
 var updateHeatmap = function (barcode) {
@@ -1273,6 +1363,18 @@ var clearHeatmap = function () {
     .ease(d3.easeLinear)
     .style("fill", function (d) { return colorScale(0) });
 
+}
+
+// heatcolor options through side pane
+function openColorSidePanel() {
+  document.getElementById("colorSidepanel").style.width = "350px";
+  $('.sidepanel').css('box-shadow', '0 24px 38px 3px rgb(0 0 0 / 14%), 0 9px 46px 8px rgb(0 0 0 / 12%), 0 11px 15px -7px rgb(0 0 0 / 20%)');
+
+}
+/* Set the width of the sidebar to 0 (hide it) */
+function closeColorSidePanel() {
+  document.getElementById("colorSidepanel").style.width = "0";
+  $('.sidepanel').css('box-shadow', 'none');
 }
 
 highlightClustSpots = function (clusterId) {
@@ -1305,10 +1407,9 @@ clearHighlightClustSpots = function () {
     })
 }
 
-
 var genecardPopup = function (gene) {
   if ($('#genecardChecked').is(':checked')) {
-    popupWindow = window.open("https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + gene.trim() + "#summaries", 'popUpWindow',
+    popupWindow = window.open(app_config.genecard_url + gene.trim() + "#summaries", 'popUpWindow',
       'height=700,width=800,left=50,top=100,resizable=yes,scrollbars=yes,toolbar=yes,menubar=no,location=no,directories=no,status=yes');
   }
 }
@@ -1318,7 +1419,7 @@ function allowSampleDrop(ev) {
 }
 
 var sampleDrag = function (ev) {
-  ev.dataTransfer.setData("text", ev.target.id)
+  ev.dataTransfer.setData("text", ev.target.id);
 }
 
 function sampleDrop(ev) {
@@ -1375,9 +1476,7 @@ var heatContainerTab = function () {
   $('#grp-box-container').css("display", "none");
   $('#grp-heat-container').css("display", "block");
 }
-
 var genesContainerTab = function (e) {
-
   const genesTabContnets = $(".genenes-tab-content");
   if (genesTabContnets != null) {
     for (let i = 0; i < genesTabContnets.length; i++) {
@@ -1385,11 +1484,9 @@ var genesContainerTab = function (e) {
       $('#' + contentid).css("display", "none");
     }
   }
-
   const targetContainer = e.children[0].id + "Content"
   $('#' + targetContainer).css("display", "block");
 }
-
 
 var updateGroupsNums = function (n) {
   let divArea = document.getElementById("compGroupArea")
@@ -1417,7 +1514,6 @@ var updateGroupsNums = function (n) {
     compGroupDiv.appendChild(compGroupSel);
     divArea.appendChild(compGroupDiv);
   }
-
   //remove the last gene selection
   global_current_gene = "";
 }
@@ -1427,7 +1523,7 @@ var cleanGroups = function () {
 }
 
 var updateGroupGenesTabs = function (tabGenesContainer, tabGenesData) {//genes in the group tab
-  const ul = document.getElementById("DEGenesTab")
+  const ul = document.getElementById("DEGenesTab");
   const li = document.createElement("li");
   li.classList.add("nav-item");
   li.setAttribute("role", "presentation");
@@ -1455,13 +1551,8 @@ var updateGroupGenesTabs = function (tabGenesContainer, tabGenesData) {//genes i
   genesContainerPDiv.setAttribute("role", "tabpanel");
   genesContainerPDiv.setAttribute("aria-labelledby", tabGenesContainer);
   genesContainerPDiv.setAttribute("id", tabGenesContainer + "Content");
-
-
   const genesContainerDiv = document.createElement("div");
-
   genesContainerDiv.classList.add("clustinfoScroll");
-
-
 
   if (Object.keys(tabGenesData).length === 0) {
     return null;
@@ -1473,11 +1564,14 @@ var updateGroupGenesTabs = function (tabGenesContainer, tabGenesData) {//genes i
       cardDiv.setAttribute("id", "cardGroup" + c);
       cardDiv.classList.add("card");
 
-      let cardBodyDiv = document.createElement('div')
+      let cardBodyDiv = document.createElement('div');
       cardBodyDiv.classList.add("card-body");
 
-      let cardH5 = document.createElement('h5')
+      let cardH5 = document.createElement('h5');
       cardH5.classList.add("card-title");
+      cardH5.setAttribute("data-toggle", "tooltip");
+      cardH5.setAttribute("data-placement", "right");
+      cardH5.setAttribute("title", "Click on the gene names to see its expression.");
 
       cardH5.setAttribute("style", "color:" + tabGenesData[c].color);
       cardH5.innerHTML = "Cluster" + c + " : " + tabGenesData[c].name;
@@ -1493,8 +1587,11 @@ var updateGroupGenesTabs = function (tabGenesContainer, tabGenesData) {//genes i
       for (var i = 0; i < c_genes_list.length; i++) {
         c_gene = c_genes_list[i];
         var g_text = document.createElement('span');
+        g_text.classList.add("gene-text");
+        g_text.classList.add("pointer-click");
         g_text.addEventListener('mouseover', function (e) {
           e.target.style.color = "red";
+          e.target.style.fontWeight = 500;
           if ($('#mouseChecked').is(':checked')) {
             updateBox(e.target.innerHTML);
             updateGrpHeat(e.target.innerHTML);
@@ -1502,6 +1599,8 @@ var updateGroupGenesTabs = function (tabGenesContainer, tabGenesData) {//genes i
         });
         g_text.addEventListener('mouseout', function (e) {
           e.target.style.color = "black";
+          e.target.style.fontWeight = "normal";
+          e.target.style.fontWeight = "normal";
           if ($('#mouseChecked').is(':checked')) {
           }
         });
@@ -1635,9 +1734,11 @@ var addGroupGenesTabsAsTable = function (tabGenesContainer, tabGenesData, activa
           c_gene = c_genes_list[m];
 
           var g_text = document.createElement('span');
+          g_text.classList.add("gene-text");
           g_text.addEventListener('mouseover', function (e) {
             if (sampleGenes.includes(e.target.innerHTML.trim())) {
               e.target.style.color = "red";
+              e.target.style.fontWeight = 500;
               if ($('#mouseChecked').is(':checked')) {
                 updateBox(e.target.innerHTML);
                 updateGrpHeat(e.target.innerHTML);
@@ -1647,6 +1748,7 @@ var addGroupGenesTabsAsTable = function (tabGenesContainer, tabGenesData, activa
           g_text.addEventListener('mouseout', function (e) {
             if (sampleGenes.includes(e.target.innerHTML.trim())) {
               e.target.style.color = "black";
+              e.target.style.fontWeight = "normal";
               if ($('#mouseChecked').is(':checked')) {
               }
             }
@@ -1789,7 +1891,7 @@ var getClusterMeanExpr = function (samp_id, clust_id, gene) {
 var prepareDataGrpHeat = function (gene) {
 
   let num_groups = d3.select("#numGroups").property("value");
-  var grpHeatData = []
+  var grpHeatData = [];
   var x_data = [];
   var grp_elms_count = [];
   var cnt = 0;
@@ -1815,7 +1917,7 @@ var prepareDataGrpHeat = function (gene) {
   for (const samp_id of x_data) {
     sampleClustMeanExpr[samp_id] = {};
     const clusterNumAll = dataAllPatients[samp_id].map(function (r) { return r[app_config.data_cluster_column] });
-    const sample_clusters = [...new Set(clusterNumAll)]
+    const sample_clusters = [...new Set(clusterNumAll)];
 
     y_data = y_data.concat(sample_clusters);//adding all unique cluster for number of row
 
@@ -1825,7 +1927,7 @@ var prepareDataGrpHeat = function (gene) {
   }
 
   y_data = [...new Set(y_data)] //making unique cluster numbers
-  y_data = y_data.map(d => d.toString())
+  y_data = y_data.map(d => d.toString());
   y_data.sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
   y_data.reverse();
   for (const c of y_data) {
@@ -1843,7 +1945,7 @@ var prepareDataGrpHeat = function (gene) {
   var text = z_data.map((row, i) => row.map((item, j) => {
     let avg_val = null;
     if (item !== null) {
-      avg_val = item.toFixed(4)
+      avg_val = item.toFixed(4);
     }
     return `
         Sample: ${x_data[j]}<br>
@@ -1857,7 +1959,7 @@ var prepareDataGrpHeat = function (gene) {
     y: y_data,
     text: text,
     type: 'heatmap',
-    colorscale: 'BuYlRd',
+    colorscale: app_config.colorscale_heatmap_group_analysis,
     hoverinfo: 'text',
     // reversescale : true,
     hoverongaps: true
@@ -1887,7 +1989,7 @@ var groupDatavizHeatPlot = document.getElementById('groupDatavizHeat');
 // Not used, instead prepareStatsDataPsudoBulk is used.
 var prepareStatsData = function (gene, d) {
   const k = Object.keys(cluster_names).sort((a, b) => a.localeCompare(b, 'en', { numeric: true }))[Object.keys(cluster_names).length - d - 1]
-  const clust_name = cluster_names[k]
+  const clust_name = cluster_names[k];
   let num_groups = d3.select("#numGroups").property("value");
 
   var x_data = [];
@@ -1917,7 +2019,7 @@ var prepareStatsData = function (gene, d) {
       clust_barcodes = clust_barcodes.filter(function (el) { return el != null; });
 
       x_data_grp = x_data_grp.concat(clust_barcodes.map(function (r) {
-        return getSpotExpressions(grp_samp_id.trim(), r.trim(), gene.trim())
+        return getSpotExpressions(grp_samp_id.trim(), r.trim(), gene.trim());
       }));
     }
     x_data.push(x_data_grp);
@@ -1965,7 +2067,7 @@ var prepareStatsDataPsudoBulk = function (gene, d) {
       clust_barcodes = clust_barcodes.filter(function (el) { return el != null; });
 
       let all_spots_expr = clust_barcodes.map(function (r) {
-        return getSpotExpressions(grp_samp_id.trim(), r.trim(), gene.trim())
+        return getSpotExpressions(grp_samp_id.trim(), r.trim(), gene.trim());
       })
       if (all_spots_expr.length != 0) {
         x_data_grp = x_data_grp.concat(ss.mean(all_spots_expr));
@@ -2023,7 +2125,7 @@ var prepareStatsDataSingleGroup = function (gene, d) {
   x_data.push(sel_grp);
   x_data.push(rest_grp);
 
-  return x_data
+  return (x_data)
 }
 
 var computeWelchT = function (x, y) {
@@ -2049,12 +2151,12 @@ var computeTdf = function (x, y) {
   const xSD = ss.sampleStandardDeviation(x);
   const ySD = ss.sampleStandardDeviation(y);
 
-  const xSD2 = (xSD ** 2) / n1
-  const ySD2 = (ySD ** 2) / n2
+  const xSD2 = (xSD ** 2) / n1;
+  const ySD2 = (ySD ** 2) / n2;
 
-  const df = ((xSD2 + ySD2) ** 2) / (((xSD2 ** 2) / (n1 - 1)) + ((ySD2 ** 2) / (n2 - 1)))
+  const df = ((xSD2 + ySD2) ** 2) / (((xSD2 ** 2) / (n1 - 1)) + ((ySD2 ** 2) / (n2 - 1)));
 
-  return df
+  return (df)
 }
 
 // Updating the t-test table
@@ -2092,7 +2194,6 @@ var updateCompStatInfo = function (compData, gene, clusterName) {
 
     tval = '--';
     adj_pVal = '--';
-    // significance = '';
     // Minimum 3 samples needed for one sample t-test
     if (compData[0].length >= 3) {
 
@@ -2103,14 +2204,6 @@ var updateCompStatInfo = function (compData, gene, clusterName) {
       tval = precision(tval) //rounding for print
       df = precision(df);
       adj_pVal = Math.min(pVal * sampleGenes.length, 1.00);
-
-      // if (pVal < 0.01) {
-      //   significance = '**';
-      // } else if (pVal < 0.05) {
-      //   significance = '*';
-      // } else {
-      //   significance = '';
-      // }
     }
 
     var row = table.insertRow(2);
@@ -2138,8 +2231,8 @@ var updateCompStatInfo = function (compData, gene, clusterName) {
           df = computeTdf(compData[i], compData[j]);
 
           pVal = precision(pt(Math.abs(tval), df, 0, false, false) * 2);
-          tval = precision(tval) //rounding for print
-          df = precision(df) //rounding for print
+          tval = precision(tval); //rounding for print
+          df = precision(df); //rounding for print
           adj_pVal = Math.min(pVal * sampleGenes.length, 1.00);
 
         } else {
@@ -2156,14 +2249,14 @@ var updateCompStatInfo = function (compData, gene, clusterName) {
         var cell3 = row.insertCell(2);
         var cell4 = row.insertCell(3);
 
-        var meanx = 'NA'
+        var meanx = 'NA';
         if (compData[i].length > 0) {
-          meanx = precision(ss.mean(compData[i]))
+          meanx = precision(ss.mean(compData[i]));
         }
 
-        var meany = 'NA'
+        var meany = 'NA';
         if (compData[j].length > 0) {
-          meany = precision(ss.mean(compData[j]))
+          meany = precision(ss.mean(compData[j]));
         }
 
         cell1.innerHTML = testType;
@@ -2212,9 +2305,9 @@ async function t_test(gene, d) {
     ((compData[0].length >= 3 & compData[1].length >= 2) | (compData[0].length >= 2 & compData[1].length >= 3)) &
     (ss.max(compData[0]) >= minMeanExpCutoff | ss.max(compData[1]) >= minMeanExpCutoff)) {
 
-    meanx = precision(ss.mean(compData[0]))
-    meany = precision(ss.mean(compData[1]))
-    log2fc = precision(Math.log2(meanx / meany))
+    meanx = precision(ss.mean(compData[0]));
+    meany = precision(ss.mean(compData[1]));
+    log2fc = precision(Math.log2(meanx / meany));
 
     if (Math.abs(log2fc) < minLogFCCutoff) {
       return null;
@@ -2249,12 +2342,12 @@ async function t_test(gene, d) {
 
           meanx = 'NA'
           if (compData[i].length > 0) {
-            meanx = precision(ss.mean(compData[i]))
+            meanx = precision(ss.mean(compData[i]));
           }
 
           meany = 'NA'
           if (compData[j].length > 0) {
-            meany = precision(ss.mean(compData[j]))
+            meany = precision(ss.mean(compData[j]));
           }
 
           if (Math.max(meanx, meany) < minMeanExpCutoff) {
@@ -2273,7 +2366,7 @@ async function t_test(gene, d) {
           pVal = pt(Math.abs(tval), df, 0, false, false) * 2;
           adj_pVal = Math.min(pVal * sampleGenes.length, 1.00);
 
-          tval = precision(tval) //rounding for print
+          tval = precision(tval); //rounding for print
           pVal = precision(pVal);
           df = precision(df);
 
@@ -2298,7 +2391,7 @@ async function t_test(gene, d) {
 
 async function t_test_allgenes() {
 
-  var de_result_array = []
+  var de_result_array = [];
   const clust_ks = Object.keys(cluster_names).sort((a, b) => a.localeCompare(b, 'en', { numeric: true }))
   for (let k = 0; k < clust_ks.length; k++) {
     for (let g_i = 0; g_i < sampleGenes.length; g_i++) {
@@ -2335,7 +2428,7 @@ var runDETest = function () {
 
   let num_groups = d3.select("#numGroups").property("value");
 
-  let samplesInGroups = []
+  let samplesInGroups = [];
   for (let i = 1; i <= num_groups; i++) {
     const parent = document.getElementById("compGroupSel" + i);
 
@@ -2345,7 +2438,7 @@ var runDETest = function () {
     });
     ids = ids.map(d => { return d.substr(14) });
     ids = [...new Set(ids)];
-    samplesInGroups.push(ids.length)
+    samplesInGroups.push(ids.length);
   }
 
   if (samplesInGroups.length === 0 | ss.max(samplesInGroups) < 3) {
@@ -2454,7 +2547,7 @@ var showSampleInfo = function (sampleId, e) {
       var probCell = document.createElement("td");
       var valCell = document.createElement("td");
 
-      k = Object.keys(sampleInfoData)[i]
+      k = Object.keys(sampleInfoData)[i];
 
       probCell.innerHTML = '<b>' + k + '</b>:';
       valCell.innerHTML = sampleInfoData[k];
@@ -2620,7 +2713,7 @@ window.onload = () => {
       dynamicTyping: true,
       complete: function (results) {
         genes_obj = results.data;
-        file_id = "Upload"
+        file_id = "Upload";
         let k = 0;
         while (document.getElementById(file_id) !== null) {
           k = k + 1;

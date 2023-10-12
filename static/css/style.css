@@ -16,6 +16,13 @@ svg {
   background-size: 100% 100%;*/
 }
 
+hr {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
 .content {
   display: flex;
   justify-content: space-between;
@@ -39,7 +46,26 @@ svg {
     margin-right: 1px;
 }
 
+.btn:hover {
+    box-shadow: 0 3px #666;
+   transform: translateY(1.5px);
+  }
 
+.btn:active {
+  box-shadow: 0 3px #666;
+  transform: translateY(3px);
+  }
+
+
+
+.unselectable{
+    /* user-drag: none;  */
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
 
 .clust-deactive{
   color: #000000 !important;
@@ -168,6 +194,25 @@ div.zoom_container {
 #eraserGeneSel{
     display: none;
 }
+
+#eraserGeneSel:active{
+    animation: erasemove 0.3s;
+    animation-iteration-count: 2;
+}
+
+@keyframes erasemove {
+    0% { transform: translate(0px, 0px); }
+    10% { transform: translate(1px, 0px); }
+    20% { transform: translate(2px, 0px); }
+    30% { transform: translate(3px, 0px); }
+    40% { transform: translate(2px, 0px); }
+    50% { transform: translate(1px, 0px); }
+    60% { transform: translate(0px, 0px); }
+    70% { transform: translate(-1px, 0px); }
+    80% { transform: translate(-2px, 0px); }
+    90% { transform: translate(-3px, 0px); }
+    100% { transform: translate(0px, 0px); }
+  }
 
 #showHideClustInfo{
     display: inline-block;
@@ -392,8 +437,45 @@ span + span {
     text-align: center;
 }
 
+/* The color sidepanel menu */
+.colorSidepanel {
+    height: 75%;
+    width: 0;
+    position: fixed; /* Stay in place */
+    z-index: 5; /* Stay on top */
+    top: 0;
+    left: -30px;
+    border: 1px solid black;
+    background-color: #fffdfd; /* Black*/
+    overflow-x: hidden; /* Disable horizontal scroll */
+    overflow-y: scroll;
+    padding-top: 60px; /* Place content 60px from the top */
+    padding-bottom: 20px;
+    transition: 0.5s; /* 0.5 second transition effect to slide in the sidepanel */
+    transform: translate(0%, 10%);
+    box-shadow: 0 24px 38px 3px rgb(0 0 0 / 14%), 0 9px 46px 8px rgb(0 0 0 / 12%), 0 11px 15px -7px rgb(0 0 0 / 20%);
 
-/* The sidepanel menu */
+  }
+  
+  /* The color sidepanel links */
+.colorSidepanel a {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    display: block;
+    transition: 0.3s;
+  }
+  
+  /* color sidepanel Position and style the close button (top right corner) */
+.colorSidepanel .closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 80px;
+  }
+
+
+/* The DE sidepanel menu */
 .sidepanel {
     /* height: 250px; */
     width: 0;
@@ -402,7 +484,7 @@ span + span {
     top: 0;
     left: -30px;
     border: 1px solid black;
-    background-color: #fffdfd; /* Black*/
+    background-color: #fffdfd;
     overflow-x: hidden; /* Disable horizontal scroll */
     padding-top: 60px; /* Place content 60px from the top */
     padding-bottom: 20px;
@@ -412,7 +494,7 @@ span + span {
 
   }
   
-  /* The sidepanel links */
+  /* The DE sidepanel links */
 .sidepanel a {
     padding: 8px 8px 8px 32px;
     text-decoration: none;
@@ -420,7 +502,7 @@ span + span {
     transition: 0.3s;
   }
   
-  /* Position and style the close button (top right corner) */
+  /* DE sidepanel position and style the close button (top right corner) */
 .sidepanel .closebtn {
     position: absolute;
     top: 0;
@@ -500,4 +582,41 @@ span + span {
           --gradX: 50%;
           --gradY: 0%;
       }
+  }
+
+img:hover{
+    -o-transition:.5s;
+    -ms-transition:.5s;
+    -moz-transition:.5s;
+    -webkit-transition:.5s;
+    transition:.5s;
+    box-shadow: 10px 10px 5px #888888;
+}
+
+#cleanGroups:active {
+    animation: shake 0.3s;
+    animation-iteration-count: 1;
+}
+
+.gene-text:active{
+   box-shadow: 0 3px #666;
+   transform: translateY(3px);
+}
+
+@keyframes shake {
+    0% { transform: translate(0px, 0px) rotate(0deg); }
+    10% { transform: translate(0px, 0px) rotate(-5deg); }
+    20% { transform: translate(0px, 0px) rotate(-10deg); }
+    30% { transform: translate(0px, 0px) rotate(-20deg); }
+    40% { transform: translate(0px, 0px) rotate(-30deg); }
+    50% { transform: translate(0px, 0px) rotate(30deg); }
+    60% { transform: translate(0px, 0px) rotate(20deg); }
+    70% { transform: translate(0px, 0px) rotate(10deg); }
+    80% { transform: translate(0px, 0px) rotate(5deg); }
+    90% { transform: translate(0px, 0px) rotate(0deg); }
+    100% { transform: translate(0px, 0px) rotate(0deg); }
+  }
+  
+  .pointer-click:hover{
+    cursor: pointer;
   }
