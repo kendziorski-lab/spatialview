@@ -449,7 +449,7 @@ span + span {
     background-color: #fffdfd; /* Black*/
     overflow-x: hidden; /* Disable horizontal scroll */
     overflow-y: scroll;
-    padding-top: 60px; /* Place content 60px from the top */
+    padding-top: 10px; /* Place content 60px from the top */
     padding-bottom: 20px;
     transition: 0.5s; /* 0.5 second transition effect to slide in the sidepanel */
     transform: translate(0%, 10%);
@@ -467,12 +467,17 @@ span + span {
   
   /* color sidepanel Position and style the close button (top right corner) */
 .colorSidepanel .closebtn {
-    position: absolute;
+    position: sticky;
     top: 0;
     right: 25px;
     font-size: 36px;
-    margin-left: 80px;
+    margin-left: 80%;
   }
+
+.colorSidepanel .closebtn:active {
+    animation: rotate 0.3s;
+    animation-iteration-count: 1;
+}
 
 
 /* The DE sidepanel menu */
@@ -509,6 +514,15 @@ span + span {
     right: 25px;
     font-size: 36px;
     margin-left: 80px;
+  }
+
+.sidepanel .closebtn:active {
+    animation: rotate 0.3s;
+    animation-iteration-count: 1;
+}
+
+@keyframes rotate {
+    100%{transform:rotate(36deg);}
   }
 
 .tTestMsg {
@@ -616,7 +630,7 @@ img:hover{
     90% { transform: translate(0px, 0px) rotate(0deg); }
     100% { transform: translate(0px, 0px) rotate(0deg); }
   }
-  
-  .pointer-click:hover{
+
+.pointer-click:hover{
     cursor: pointer;
   }

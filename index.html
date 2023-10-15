@@ -196,126 +196,150 @@
 									<div id="colorSidepanel" class="colorSidepanel">
 										<div style="margin-left:30px">
 											<a href="javascript:void(0)" class="closebtn" onclick="closeColorSidePanel()">&times;</a>
-											<div class="form-group row justify-content-center">
+											<div class="form-group row justify-content-center align-items-center">
+												
 												<div class="row">
-													<div class="col-6">
-													  <label for="rangeMin">Min.</label>
-													  <input type="number" class="form-control" id="colScaleDomainMin" placeholder="0" onchange="changeColorScale(this.value, null, null)">
+													<div class="col-auto">
+														<div class="row h-100">
+															<div class="form-check form-switch align-self-center" style="margin-left: 10px;">
+																<label for="autoDomain" data-toggle="tooltip" data-placement="bottom"  title="Set color domain based on minimum and maximum values from all samples.">Auto</label>
+																<input class="form-check-input" type="checkbox" role="switch" id="autoDomain" onchange="changeDomainAuto();" 
+																data-toggle="tooltip" data-placement="bottom"  title="Set color domain based on minimum and maximum values from all samples.">
+															</div>
+														</div>
 													</div>
-													<div class="col-6">
-													<label for="rangeMax">Max.</label>
-													  <input type="number" class="form-control" id="colScaleDomainMax" placeholder="5" onchange="changeColorScale(null, this.value, null)">
+													<div class="col-8">
+														<div class="border border-secondary rounded-top">
+														<div class="row">
+															<div class="col-6">
+															  <label for="colScaleDomainMin">Min.</label>
+															  <input type="number" class="form-control" id="colScaleDomainMin" placeholder="0" onchange="changeColorScale(this.value, null, null)">
+															</div>
+															<div class="col-6">
+																<label for="colScaleDomainMax">Max.</label>
+																  <input type="number" class="form-control" id="colScaleDomainMax" placeholder="5" onchange="changeColorScale(null, this.value, null)">
+															</div>
+															</div>
+															<div class="row">
+																<div class="col-1"></div>
+																<div class="col-auto form-check form-switch">
+																	<label for="pctColRange">Percentile</label>
+																	<input class="form-check-input" type="checkbox" role="switch" id="pctColRange" onchange="changePctColRange();">  
+																</div>
+																<div class="col-1"></div>
+															</div>
+														</div>
 													</div>
 												</div>
-												<br>
+
 												<hr>
 												<h6>Sequential</h6>
 												<h5 id="interpolateBlues" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/Blues.png" width="100%" height="20" alt="Blues.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/Blues.png" width="100%" height="20" alt="Blues.png" title="Blues">
 												</h5>
 												<h5 id="interpolateGreens" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/Greens.png" width="100%" height="20" alt="Greens.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/Greens.png" width="100%" height="20" alt="Greens.png" title="Greens">
 												</h5>
 												<h5 id="interpolateGreys" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/Greys.png" width="100%" height="20" alt="Greys.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/Greys.png" width="100%" height="20" alt="Greys.png" title="Greys">
 												</h5>
 												<h5 id="interpolateOranges" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/Oranges.png" width="100%" height="20" alt="Oranges.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/Oranges.png" width="100%" height="20" alt="Oranges.png" title="Oranges">
 												</h5>
 												<h5 id="interpolatePurples" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/Purples.png" width="100%" height="20" alt="Purples.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/Purples.png" width="100%" height="20" alt="Purples.png" title="Purples">
 												</h5>
 												<h5 id="interpolateReds" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/Reds.png" width="100%" height="20" alt="Reds.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/Reds.png" width="100%" height="20" alt="Reds.png" title="Reds">
 												</h5>
 												<h6>Sequential (Multi-Hue)</h6>
 												<h5 id="interpolateTurbo" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/turbo.png" width="100%" height="20" alt="turbo.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/turbo.png" width="100%" height="20" alt="turbo.png" title="turbo">
 												</h5>
 												<h5 id="interpolateViridis" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/viridis.png" width="100%" height="20" alt="viridis.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/viridis.png" width="100%" height="20" alt="viridis.png" title="viridis">
 												</h5>
 												<h5 id="interpolateInferno" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/inferno.png" width="100%" height="20" alt="inferno.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/inferno.png" width="100%" height="20" alt="inferno.png" title="inferno">
 												</h5>
 												<h5 id="interpolateMagma" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/magma.png" width="100%" height="20" alt="magma.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/magma.png" width="100%" height="20" alt="magma.png" title="magma">
 												</h5>
 												<h5 id="interpolatePlasma" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/plasma.png" width="100%" height="20" alt="plasma.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/plasma.png" width="100%" height="20" alt="plasma.png" title="plasma">
 												</h5>
 												<h5 id="interpolateCividis" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/cividis.png" width="100%" height="20" alt="cividis.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/cividis.png" width="100%" height="20" alt="cividis.png" title="cividis">
 												</h5>
 												<h5 id="interpolateWarm" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/warm.png" width="100%" height="20" alt="warm.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/warm.png" width="100%" height="20" alt="warm.png" title="warm">
 												</h5>
 												<h5 id="interpolateCool" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/cool.png" width="100%" height="20" alt="cool.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/cool.png" width="100%" height="20" alt="cool.png" title="cool">
 												</h5>
 												<h5 id="interpolateCubehelixDefault" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/cubehelix.png" width="100%" height="20" alt="cubehelix.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/cubehelix.png" width="100%" height="20" alt="cubehelix.png" title="cubehelix">
 												</h5>
 												<h5 id="interpolateBuGn" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/BuGn.png" width="100%" height="20" alt="BuGn.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/BuGn.png" width="100%" height="20" alt="BuGn.png" title="BuGn">
 												</h5>
 												<h5 id="interpolateBuPu" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/BuPu.png" width="100%" height="20" alt="BuPu.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/BuPu.png" width="100%" height="20" alt="BuPu.png" title="BuPu">
 												</h5>
 												<h5 id="interpolateGnBu" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/GnBu.png" width="100%" height="20" alt="GnBu.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/GnBu.png" width="100%" height="20" alt="GnBu.png" title="GnBu">
 												</h5>
 												<h5 id="interpolateOrRd" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/OrRd.png" width="100%" height="20" alt="OrRd.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/OrRd.png" width="100%" height="20" alt="OrRd.png" title="OrRd">
 												</h5>
 												<h5 id="interpolatePuBuGn" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/PuBuGn.png" width="100%" height="20" alt="PuBuGn.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/PuBuGn.png" width="100%" height="20" alt="PuBuGn.png" title="PuBuGn">
 												</h5>
 												<h5 id="interpolatePuBu" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/PuRd.png" width="100%" height="20" alt="PuRd.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/PuRd.png" width="100%" height="20" alt="PuRd.png" title="PuRd">
 												</h5>
 												<h5 id="interpolatePuRd" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/RdPu.png" width="100%" height="20" alt="RdPu.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/RdPu.png" width="100%" height="20" alt="RdPu.png" title="RdPu">
 												</h5>
 												<h5 id="interpolateRdPu" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/YlGnBu.png" width="100%" height="20" alt="YlGnBu.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/YlGnBu.png" width="100%" height="20" alt="YlGnBu.png" title="YlGnBu">
 												</h5>
 												<h5 id="interpolateYlGnBu" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/YlGn.png" width="100%" height="20" alt="YlGn.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/YlGn.png" width="100%" height="20" alt="YlGn.png" title="YlGn">
 												</h5>
 												<h5 id="interpolateYlGn" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/YlOrBr.png" width="100%" height="20" alt="YlOrBr.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/YlOrBr.png" width="100%" height="20" alt="YlOrBr.png" title="YlOrBr">
 												</h5>
 												<h5 id="interpolateYlOrBr" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/YlOrBr.png" width="100%" height="20" alt="YlOrBr.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/YlOrBr.png" width="100%" height="20" alt="YlOrBr.png" title="YlOrBr">
 												</h5>
 												<h5 id="interpolateYlOrRd" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/YlOrRd.png" width="100%" height="20" alt="YlOrRd.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/YlOrRd.png" width="100%" height="20" alt="YlOrRd.png" title="YlOrRd">
 												</h5>
 												<h6>Diverging</h6>
 												<h5 id="interpolateBrBG" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/BrBG.png" width="100%" height="20" alt="BrBG.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/BrBG.png" width="100%" height="20" alt="BrBG.png" title="BrBG">
 												</h5>
 												<h5 id="interpolatePRGn" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/PRGn.png" width="100%" height="20" alt="PRGn.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/PRGn.png" width="100%" height="20" alt="PRGn.png" title="PRGn">
 												</h5>
 												<h5 id="interpolatePiYG" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/PiYG.png" width="100%" height="20" alt="PiYG.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/PiYG.png" width="100%" height="20" alt="PuOr.png" title="PuOr">
 												</h5>
 												<h5 id="interpolatePuOr" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/PuOr.png" width="100%" height="20" alt="PuOr.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/PuOr.png" width="100%" height="20" alt="PuOr.png" title="PuOr">
 												</h5>
 												<h5 id="interpolateRdBu" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/RdBu.png" width="100%" height="20" alt="RdBu.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/RdBu.png" width="100%" height="20" alt="RdBu.png" title="RdBu">
 												</h5>
 												<h5 id="interpolateRdGy" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/RdGy.png" width="100%" height="20" alt="RdGy.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/RdGy.png" width="100%" height="20" alt="RdGy.png" title="RdGy">
 												</h5>
 												<h5 id="interpolateRdYlBu" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/RdYlBu.png" width="100%" height="20" alt="RdYlBu.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/RdYlBu.png" width="100%" height="20" alt="RdYlBu.png" title="RdYlBu">
 												</h5>
 												<h5 id="interpolateRdYlGn" class="pointer-click" onclick="changeColorScale(null, null, this.id)">
-													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/RdYlGn.png" width="100%" height="20" alt="RdYlGn.png">
+													<img src="https://raw.githubusercontent.com/d3/d3-scale-chromatic/master/img/RdYlGn.png" width="100%" height="20" alt="RdYlGn.png" title="RdYlGn">
 												</h5>
 
 											</div>
@@ -532,7 +556,7 @@
 						<h4>Code from GitHub</h4>
 						<b>SpatialView</b> application can be downloaded from <a href="/" target="_blank"
 							rel="noopener noreferrer" id="repolink1">Github</a>, and can be run in local machine by following steps. 
-							Note that, application can run from any http server, however the following steps assume that Python is installed on the local machine and the application runs in Python htt.server. 
+							Note that, application can run from any http server, however the following steps assume that Python is installed on the local machine and the application runs in Python http.server. 
 
 						<li>Download the file from <a target="_blank" rel="noopener noreferrer" id="repolink2" href="/">here</a> to your local
 							system and Unzip the folder.</li>
@@ -703,7 +727,7 @@
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 
-<script src="https://unpkg.com/simple-statistics@7.7.6/dist/simple-statistics.min.js"></script>
+<script src="https://unpkg.com/simple-statistics@7.8.3/dist/simple-statistics.min.js"></script>
 <script src="https://unpkg.com/lib-r-math.js@1.0.89/dist/lib/libR.min.js"></script>
 <script>
 	const libR = window.libR;

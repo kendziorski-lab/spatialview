@@ -16,6 +16,7 @@
  "data_cluster_column": "seurat_clusters",
  "colorscale_heatmap_individual_analysis":"interpolateYlOrRd",
  "colorscale_heatmap_group_analysis":"BuYlRd",
+ "colorscale_autoDomain":true,
  "colorscale_domain":[0,5],
  "heatmap_num_columns":15,
  "tooltip_on":true,

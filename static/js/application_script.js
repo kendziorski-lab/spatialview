@@ -13,6 +13,8 @@ var global_first_load = true;
 var app_config = {};
 var sampleGenes = [];
 
+var _cache_expr = {};
+
 //===================Warns user on window back/reload button click =========
 window.onbeforeunload = function () {
   return 'Are you sure? Your work will be lost. ';
@@ -41,17 +43,24 @@ $("#repolink2").attr("href", app_config.data_repo_link);
 $("#tutorial_link").attr("src", app_config.tutorial_link);
 
 //setting the checkboxes
-$('#tooltipChecked').prop("checked", app_config.tooltip_on)
-$('#zoomChecked').prop("checked", app_config.enlarged_window_on)
-$('#genecardChecked').prop("checked", app_config.genecards_link_on)
-$('#clustSelLock').prop("checked", app_config.cluster_lock_on)
-$('#mouseChecked').prop("checked", app_config.quick_mouseover_on)
-$('#mouseChecked1').prop("checked", app_config.quick_mouseover_on)
-$('#searchPin').prop("checked", app_config.pin_search_on)
+$('#tooltipChecked').prop("checked", app_config.tooltip_on);
+$('#zoomChecked').prop("checked", app_config.enlarged_window_on);
+$('#genecardChecked').prop("checked", app_config.genecards_link_on);
+$('#clustSelLock').prop("checked", app_config.cluster_lock_on);
+$('#mouseChecked').prop("checked", app_config.quick_mouseover_on);
+$('#mouseChecked1').prop("checked", app_config.quick_mouseover_on);
+$('#searchPin').prop("checked", app_config.pin_search_on);
 
 // colorbar scale
-$('#colScaleDomainMin').prop("value", app_config.colorscale_domain[0])
-$('#colScaleDomainMax').prop("value", app_config.colorscale_domain[1])
+$('#colScaleDomainMin').prop("value", app_config.colorscale_domain[0]);
+$('#colScaleDomainMax').prop("value", app_config.colorscale_domain[1]);
+$('#autoDomain').prop("checked", app_config.colorscale_autoDomain);
+if(app_config.colorscale_autoDomain){
+  $('#colScaleDomainMin').prop('disabled',true);
+  $('#colScaleDomainMax').prop('disabled',true);
+  $('#pctColRange').prop('disabled',true);
+}
+
 
 //TODO: Move meta config to config.json
 app_config.meta_key = "META/"
@@ -64,14 +73,14 @@ var getSpotExpressions = function (_sample_id, _barcode, _gene) {
       if (_gene === null) return (spotExpressions[_sample_id][_barcode])
       if (_gene in spotExpressions[_sample_id][_barcode]) {
         return (parseFloat(spotExpressions[_sample_id][_barcode][_gene]))
-      } else if(_gene.indexOf(app_config.meta_key) == 0){
+      } else if (_gene.indexOf(app_config.meta_key) == 0) {
         meta_col = _gene.substring(app_config.meta_key.length)
-        var meta_res = dataAllPatients[_sample_id].map(function (r) { if(r['barcode'] === _barcode) return r[meta_col] });
+        var meta_res = dataAllPatients[_sample_id].map(function (r) { if (r['barcode'] === _barcode) return r[meta_col] });
         meta_res = meta_res.filter(Boolean)
-        if(meta_res.length === 1 & typeof meta_res[0] === "number"){
-          return(parseFloat(meta_res[0]));
-        }else{
-          return(0)
+        if (meta_res.length === 1 & typeof meta_res[0] === "number") {
+          return (parseFloat(meta_res[0]));
+        } else {
+          return (0)
         }
       }
       else {
@@ -448,7 +457,7 @@ var mouseover = function (d) {
       .style("opacity", 1)
       .style("left", (d3.event.pageX - app_config.tooltip_position_left) + "px")
       .style("top", (d3.event.pageY - app_config.tooltip_position_top) + "px")
-      .style("border-width", (app_config.tooltip_border_stroke_width)+ "px")
+      .style("border-width", (app_config.tooltip_border_stroke_width) + "px")
       .style("border-color", cluster_cols[d.cluster])
 
     if (!$('#frozen').is(':checked')) {
@@ -476,10 +485,10 @@ var mouseleave = function (d) {
 
   if (!$('#frozen').is(':checked')) {
     d3.select(this)
-    .style('stroke', function (d) {
-      if (highlightedClusters.includes('clust'+d.cluster)) { return '#000000'; }
-      else { return "none" }
-    })
+      .style('stroke', function (d) {
+        if (highlightedClusters.includes('clust' + d.cluster)) { return '#000000'; }
+        else { return "none" }
+      })
 
     clearHeatmap()
   }
@@ -495,10 +504,10 @@ var unfreezed = function () {
   global_current_barcode = "";
   svg.selectAll("circle")
     .style('stroke', function (d) {
-      if (highlightedClusters.includes('clust'+d.cluster)) { return '#000000'; }
+      if (highlightedClusters.includes('clust' + d.cluster)) { return '#000000'; }
       else { return "none" }
     })
-    
+
   if (!$('#frozen').is(':checked')) {
     $(".btn-warning").hide();
   }
@@ -531,7 +540,7 @@ function updateSlide(data, url, scaleRes) {
       else { return "rgba(0, 0, 0, 0)" }
     })
     .style("stroke", function (d) {
-      if (highlightedClusters.includes("clust" + d.cluster)) { return "#000000"}
+      if (highlightedClusters.includes("clust" + d.cluster)) { return "#000000" }
       else { return "none" }
     })
     .style("opacity", d3.select("#pointOpacity").property("value"))
@@ -565,7 +574,7 @@ d3.select("#imgOpacity").on("input", function () {
     .transition()
     .duration(100)
     .ease(d3.easeLinear)
-    .style("opacity", 1-d3.select("#imgOpacity").property("value"));
+    .style("opacity", 1 - d3.select("#imgOpacity").property("value"));
 });
 
 function SVGBackground(url) {
@@ -574,7 +583,7 @@ function SVGBackground(url) {
     .transition()
     .duration(100)
     .ease(d3.easeLinear)
-    .style("opacity", 1-d3.select("#imgOpacity").property("value"));
+    .style("opacity", 1 - d3.select("#imgOpacity").property("value"));
 }
 
 updateImageBorder = function (sampleId) {
@@ -677,26 +686,26 @@ updateClusterInfo = function (sampleId) {
   relaodClustIcon.setAttribute("data-toggle", "tooltip");
   relaodClustIcon.setAttribute("data-placement", "bottom");
   relaodClustIcon.setAttribute("title", "Reset");
-  relaodClustIcon.addEventListener("click", function(e){
+  relaodClustIcon.addEventListener("click", function (e) {
     selectedClusters_previous = [];
-    while(highlightedClusters.length > 0) {  
-        const c = highlightedClusters[0];
-        $('#' + c).click();
-        $('#' + c).click();
+    while (highlightedClusters.length > 0) {
+      const c = highlightedClusters[0];
+      $('#' + c).click();
+      $('#' + c).click();
     }
 
     for (let c in clusterInfo[sampleId]) {
       if (typeof c !== "undefined" & c !== null) {
-        if(! selectedClusters.includes("clust" + c )){
+        if (!selectedClusters.includes("clust" + c)) {
           $('#clust' + c).click();
         }
       }
     }
 
-    $({rotation: 360*!i}).animate({rotation: 360}, {
+    $({ rotation: 360 * !i }).animate({ rotation: 360 }, {
       duration: 500,
-      step: function(now) {
-        $(relaodClustIcon).css({'transform' : 'rotate('+ now +'deg)'});
+      step: function (now) {
+        $(relaodClustIcon).css({ 'transform': 'rotate(' + now + 'deg)' });
       }
     });
     // i=!i;
@@ -735,13 +744,13 @@ updateClusterInfo = function (sampleId) {
         var g_text = document.createElement('span');
         g_text.classList.add("gene-text");
         g_text.classList.add("pointer-click");
-        g_text.setAttribute("id", "right_"+c_gene.trim());
+        g_text.setAttribute("id", "right_" + c_gene.trim());
         g_text.addEventListener('mouseover', function (e) {
           e.target.style.color = "red";
           e.target.style.fontWeight = 500;
 
-          $("#left_"+e.target.innerHTML.trim()).css("stroke", "black");
-          $("#left_"+e.target.innerHTML.trim()).css("opacity", 1);
+          $("#left_" + e.target.innerHTML.trim()).css("stroke", "black");
+          $("#left_" + e.target.innerHTML.trim()).css("opacity", 1);
 
           if ($('#mouseChecked1').is(':checked')) {
             showExpressions(sampleId, e.target.innerHTML);
@@ -754,9 +763,9 @@ updateClusterInfo = function (sampleId) {
           if ($('#mouseChecked1').is(':checked')) {
             removeExpressions();
           }
-          
-        $("#left_"+e.target.innerHTML.trim()).css("stroke", "#B0C4DE");
-        $("#left_"+e.target.innerHTML.trim()).css("opacity", 0.8);
+
+          $("#left_" + e.target.innerHTML.trim()).css("stroke", "#B0C4DE");
+          $("#left_" + e.target.innerHTML.trim()).css("opacity", 0.8);
         });
 
         g_text.addEventListener('click', function (e) {
@@ -780,20 +789,20 @@ updateClusterInfo = function (sampleId) {
   //on button click show to hid spots
   d3.selectAll('button').on("click", function () {
     var btnClusterId = this.id;
-    if(btnClusterId === "undefined" | btnClusterId === null | btnClusterId.length < 5 | btnClusterId.substring(0,5) !== 'clust'){
+    if (btnClusterId === "undefined" | btnClusterId === null | btnClusterId.length < 5 | btnClusterId.substring(0, 5) !== 'clust') {
       return null;
     }
     if (selectedClusters.includes(btnClusterId)) {
       // if highlighted then deactive
-      if(highlightedClusters.includes(btnClusterId)){
+      if (highlightedClusters.includes(btnClusterId)) {
         selectedClusters.splice(selectedClusters.indexOf(btnClusterId), 1);
         highlightedClusters.splice(highlightedClusters.indexOf(btnClusterId), 1);
         d3.select(this).classed(btnClusterId + "-active", false)
-        d3.select(this).style("border-color",clusterInfo[sampleId][parseInt(btnClusterId.substring(5))].color); 
+        d3.select(this).style("border-color", clusterInfo[sampleId][parseInt(btnClusterId.substring(5))].color);
         d3.select(this).classed("clust-deactive", true)
-      }else{ //just make highlight
+      } else { //just make highlight
         highlightedClusters.push(btnClusterId);
-        d3.select(this).style("border-color","#0a0a0a"); 
+        d3.select(this).style("border-color", "#0a0a0a");
       }
     } else {
       selectedClusters.push(btnClusterId);
@@ -810,7 +819,7 @@ updateClusterInfo = function (sampleId) {
         else { return "rgba(0, 0, 0, 0)" }
       })
       .style("stroke", function (d) {
-        if (highlightedClusters.includes("clust" + d.cluster)) { return "#000000"}
+        if (highlightedClusters.includes("clust" + d.cluster)) { return "#000000" }
         else { return "none" }
       });
 
@@ -826,19 +835,19 @@ updateClusterInfo = function (sampleId) {
   })
 
   if ($('#clustSelLock').is(':checked') & !global_first_load) {
-      const selectedClusters_copy = selectedClusters.map((x) => x);
-      for (const c of selectedClusters_copy) {   
-        if (!selectedClusters_previous.includes(c)) {
+    const selectedClusters_copy = selectedClusters.map((x) => x);
+    for (const c of selectedClusters_copy) {
+      if (!selectedClusters_previous.includes(c)) {
+        $('#' + c).click();
+        $('#' + c).click();
+      } else {
+        if (highlightedClusters.includes(c)) {
+          highlightedClusters.splice(highlightedClusters.indexOf(c), 1);
           $('#' + c).click();
-          $('#' + c).click();
-        }else{
-          if(highlightedClusters.includes(c)){
-            highlightedClusters.splice(highlightedClusters.indexOf(c), 1);
-            $('#' + c).click();
-          }
         }
       }
-  }else {
+    }
+  } else {
     highlightedClusters = [];
   }
 
@@ -848,7 +857,77 @@ updateClusterInfo = function (sampleId) {
   })
 }
 
-showExpressions = function (sampleId, gene) {
+var getGeneExprsAll = function(gene){
+  expr = null;
+
+  if(gene in _cache_expr){
+    return(_cache_expr[gene]);
+  }
+  if (gene.indexOf(app_config.meta_key) == 0) {
+    meta_col = gene.substring(app_config.meta_key.length);
+    expr = Object.values(dataAllPatients).map(element => element.map(el => el[meta_col])).flat()
+  }else{
+    expr = Object.values(spotExpressions).map((element) => Object.values(element).filter((elm) => gene.trim() in elm).map((elm) => elm[gene.trim()])).flat();
+  }
+
+  //cleaning cache
+  if(Object.keys(_cache_expr).length >= 100){
+    _cache_expr = {};
+  }
+  _cache_expr[gene] = expr;
+  return(expr);
+}
+var showExpressions = function (sampleId, gene) {
+
+  //checking color scale
+  //if auto-domain in checked
+  if ($('#autoDomain').is(':checked')) {
+    var expres = getGeneExprsAll(gene);
+    var min_expr = Math.min(0, Math.min(...expres));
+    var max_expr = Math.max(...expres);
+    if (min_expr !== Infinity & min_expr !== NaN & min_expr !== undefined & 
+      max_expr !== -Infinity & max_expr !== NaN & max_expr !== undefined){
+      changeColorScale(min_expr, max_expr, null);
+    }
+  }else{//if percentile is checked
+    if ($('#pctColRange').is(':checked')) {
+      var expres = getGeneExprsAll(gene);
+      var d_min = $('#colScaleDomainMin').val();
+      var d_max = $('#colScaleDomainMax').val();
+      if(d_min < 0){
+        d_min = 0;
+      }
+      if(d_min >= 1){
+        d_min = Math.min(d_min/100, 0.99);
+      }
+
+      if(d_max < 0){
+        d_max = 1;
+      }
+      if(d_max > 1){
+        d_max = d_max/100;
+        if(d_max > 0.99){
+          d_max = 0.99;
+        }
+      }
+      var min_expr = 0;
+      var max_expr = 0;
+      if(d_min == 0){
+        min_expr = 0;
+      }else{
+        min_expr = ss.quantile(expres, d_min);
+      }
+
+      if(max_expr == 1){
+        max_expr = Math.max(...expres);
+      }else{
+        max_expr = ss.quantile(expres, d_max);
+      }
+      
+      changeColorScale(min_expr, max_expr, null);
+    }
+  }
+
   svg.selectAll('circle')
     .transition()
     .duration(10)
@@ -1068,9 +1147,9 @@ var loadHeatmap = function (griddata) {
 
     showExpressions(sampleId, d.gene);
 
-    $("#right_"+d.gene.trim()).css("color","red");
-    $("#right_"+d.gene.trim()).css("fontWeight",500);
-    
+    $("#right_" + d.gene.trim()).css("color", "red");
+    $("#right_" + d.gene.trim()).css("fontWeight", 500);
+
   }
   var mouseleaveHeatmap = function (d) {
     tooltipHeatmap
@@ -1080,8 +1159,8 @@ var loadHeatmap = function (griddata) {
       .style("opacity", 0.8);
 
     removeExpressions(sampleId, d.gene);
-    $("#right_"+d.gene.trim()).css("color","black");
-    $("#right_"+d.gene.trim()).css("fontWeight","normal");
+    $("#right_" + d.gene.trim()).css("color", "black");
+    $("#right_" + d.gene.trim()).css("fontWeight", "normal");
   }
 
   // add the squares
@@ -1095,7 +1174,7 @@ var loadHeatmap = function (griddata) {
     .attr("ry", 4)
     .attr("width", xScaleHeatmap.bandwidth())
     .attr("height", yScaleHeatmap.bandwidth())
-    .attr("id", function(d){return "left_"+d.gene.trim()})
+    .attr("id", function (d) { return "left_" + d.gene.trim() })
     .style("fill", function (d) { return colorScale(d.expr) })
     .style("stroke-width", 1)
     .style("stroke", "#B0C4DE")
@@ -1123,7 +1202,7 @@ var loadHeatmap = function (griddata) {
 
   // ----- showing color legend ------
   // The legend code used from https://stackoverflow.com/a/64807612/2374707
-  var legend = function({
+  var legend = function ({
     color,
     title,
     legendContainer,
@@ -1315,33 +1394,55 @@ var loadHeatmap = function (griddata) {
     .attr("text-anchor", "left")
     .style("font-size", "10px")
     .style("fill", "grey")
-    .text(app_config.heatmap_note + 
-      '['+app_config.colorscale_domain[0] + ',' + app_config.colorscale_domain[1] + ']')
+    .text(app_config.heatmap_note +
+      '[' + app_config.colorscale_domain[0] + ',' + app_config.colorscale_domain[1] + ']')
     .call(wrap, 300);
 }
 
 
 // Change the colorscale color and reload heatmap
-var changeColorScale = function(domainMin, domainMax, clrScale){
+var changeColorScale = function (domainMin, domainMax, clrScale) {
 
-  if(domainMin !== "" & domainMin !== "undefined" & domainMin !== null){
-    app_config.colorscale_domain[0] = Number(domainMin);
+  if (domainMin !== "" & domainMin !== "undefined" & domainMin !== null) {
+    app_config.colorscale_domain[0] = precision(Number(domainMin));
   }
 
-  if(domainMax !== "" & domainMax !== "undefined" & domainMax !== null){
-    app_config.colorscale_domain[1] = Number(domainMax);
+  if (domainMax !== "" & domainMax !== "undefined" & domainMax !== null) {
+    app_config.colorscale_domain[1] = precision(Number(domainMax));
   }
 
-  if(clrScale !== "" & clrScale !== "undefined" & clrScale !== null){
+  if (clrScale !== "" & clrScale !== "undefined" & clrScale !== null) {
     app_config.colorscale_heatmap_individual_analysis = clrScale;
   }
-  
-  colorScale = d3.scaleSequential()
-  .interpolator(eval("d3." + app_config.colorscale_heatmap_individual_analysis))
-  .domain(app_config.colorscale_domain);
 
-  closeColorSidePanel();
+  colorScale = d3.scaleSequential()
+    .interpolator(eval("d3." + app_config.colorscale_heatmap_individual_analysis))
+    .domain(app_config.colorscale_domain);
+
+  // closeColorSidePanel();
   loadHeatmap(getGridData(sampleId))
+}
+
+//Changing domain select to auto or manual
+var changeDomainAuto = function(){
+  if($('#autoDomain').prop('checked')){
+    $('#colScaleDomainMin').prop('disabled',true);
+    $('#colScaleDomainMax').prop('disabled',true);
+    $('#pctColRange').prop('disabled',true);
+  }else{
+    $('#colScaleDomainMin').prop('disabled',false);
+    $('#colScaleDomainMax').prop('disabled',false);
+    $('#pctColRange').prop('disabled',false);
+
+    changeColorScale($('#colScaleDomainMin').val(), $('#colScaleDomainMax').val(), null);
+    
+  }
+}
+
+var changePctColRange = function(){
+  if(!$('#autoDomain').prop('checked')){
+    changeColorScale($('#colScaleDomainMin').val(), $('#colScaleDomainMax').val(), null);
+  }
 }
 
 var updateHeatmap = function (barcode) {
@@ -1383,7 +1484,7 @@ highlightClustSpots = function (clusterId) {
     .duration(10)
     .ease(d3.easeLinear)
     .style('stroke', function (d) {
-      if (d.cluster.toString() === clusterId.toString() | highlightedClusters.includes('clust'+d.cluster)) { return '#000000'; }
+      if (d.cluster.toString() === clusterId.toString() | highlightedClusters.includes('clust' + d.cluster)) { return '#000000'; }
       else { return "none" }
     })
     .style('stroke-width', function (d) {
@@ -1398,11 +1499,11 @@ clearHighlightClustSpots = function () {
     .duration(10)
     .ease(d3.easeLinear)
     .style('stroke', function (d) {
-      if (highlightedClusters.includes('clust'+ d.cluster)) { return '#000000'; }
+      if (highlightedClusters.includes('clust' + d.cluster)) { return '#000000'; }
       else { return "none" }
     })
     .style('stroke-width', function (d) {
-      if (highlightedClusters.includes('clust'+ d.cluster)) { return 4; }
+      if (highlightedClusters.includes('clust' + d.cluster)) { return 4; }
       else { return 0; }
     })
 }
@@ -1697,7 +1798,7 @@ var addGroupGenesTabsAsTable = function (tabGenesContainer, tabGenesData, activa
   let tbl = document.createElement('table');
 
   const currentTab = $('#DEGenesTab').children().length;
-  let tblId = 'tblID_'+ currentTab;
+  let tblId = 'tblID_' + currentTab;
   tbl.setAttribute("id", tblId);
   tbl.classList.add("tabTable");
   tbl.classList.add("tablesorter");
@@ -1801,8 +1902,8 @@ var addGroupGenesTabsAsTable = function (tabGenesContainer, tabGenesData, activa
     }
   }
 
-  $(function() {
-    $("#"+tblId).tablesorter();
+  $(function () {
+    $("#" + tblId).tablesorter();
   });
 
 }
@@ -2324,13 +2425,13 @@ async function t_test(gene, d) {
 
     testType = clust_name + ' vs. Rest ';
     return [{
-      'gene': gene, 
-      'cluster': clust_name, 
+      'gene': gene,
+      'cluster': clust_name,
       'Compared Groups': testType,
-      'Mean X': meanx, 
-      'Mean Y': meany, 
-      'Log2FC': log2fc, 
-      'p_value': pVal.toString(), 
+      'Mean X': meanx,
+      'Mean Y': meany,
+      'Log2FC': log2fc,
+      'p_value': pVal.toString(),
       'adj_p_value': adj_pVal.toString()
     }];
 
@@ -2372,11 +2473,11 @@ async function t_test(gene, d) {
 
           testType = 'Group ' + (i + 1) + ' vs. Group ' + (j + 1);
           test_results.push({
-            'Gene': gene, 
-            'Cluster': clust_name, 
+            'Gene': gene,
+            'Cluster': clust_name,
             'Compared Groups': testType,
-            'Mean X': meanx, 'Mean Y': meany, 
-            'Log2FC': precision(Math.log2(meanx / meany)), 
+            'Mean X': meanx, 'Mean Y': meany,
+            'Log2FC': precision(Math.log2(meanx / meany)),
             'p-value': pVal.toString(),
             'Adj. p-value': adj_pVal.toString()
           });
