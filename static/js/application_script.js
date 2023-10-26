@@ -9,11 +9,20 @@ var cluster_cols = {};
 var cluster_names = {};
 var global_current_gene = "";
 var global_current_barcode = "";
+var global_current_img_url = "";
 var global_first_load = true;
+var global_loaded_samples = [];
+var gloabl_all_barcodes = [];
+var global_dim_x = [];
+var global_dim_y = [];
+var gloabl_all_point_clust_colors = [];
+var gloabl_all_point_clust = [];
 var app_config = {};
 var sampleGenes = [];
 
 var _cache_expr = {};
+
+global_spatial_cor_range = 2000;
 
 //===================Warns user on window back/reload button click =========
 window.onbeforeunload = function () {
@@ -228,6 +237,7 @@ var loadData = function (samples) {
             global_first_load = true;
             first_sample.first()[0].firstChild.click();
             global_first_load = false;
+            // global_loaded_samples.push(sample_name);
           }
         });
       },
@@ -321,6 +331,7 @@ var loadData = function (samples) {
                     var first_sample = $('#sampleImages').children().eq(1);
                     global_first_load = true;
                     first_sample.first()[0].firstChild.click();
+                    reloadDimplot();
                     global_first_load = false;
                   }
                 })
@@ -412,8 +423,10 @@ var tooltipHTML = function (d) {
   const gene_values_sorted = Object.entries(gene_values).sort(([, a], [, b]) => b - a);
   const topN = gene_values_sorted.slice(0, app_config.tooltip_top_n);
 
-  var s_tooltip = "<b>Cluster: " + d.cluster + " - " + cluster_names[d.cluster] +
-    "</b><hr>Max. expressed genes at the spot<hr><table id='tooltipTable'><tr>";
+  var s_tooltip = "<b>Cluster: " + d.cluster + " - " + cluster_names[d.cluster];
+
+  s_tooltip = s_tooltip + "</b><hr>"+d.barcode;
+  s_tooltip = s_tooltip +  "<hr>Max. expressed genes at the spot<hr><table id='tooltipTable'><tr>";
   for (let c in topN) {
     s_tooltip = s_tooltip + "<th>" + topN[c][0] + "</th>"
   }
@@ -547,7 +560,7 @@ function updateSlide(data, url, scaleRes) {
     .on("mouseover", mouseover)
     .on("mousemove", mousemove)
     .on("mouseleave", mouseleave)
-    .on("click", mouseclick)
+    .on("click", mouseclick);
 }
 
 d3.select("#pointRaius").on("input", function () {
@@ -960,6 +973,7 @@ var sampleId;
 var imgClick = function (img) {
   var url = img.src;
   sampleId = img.id;
+  global_current_img_url = url;
   updateImageBorder(sampleId);
 
   updateClusterInfo(sampleId);
@@ -974,6 +988,10 @@ var imgClick = function (img) {
   if ($('#searchPin').is(':checked')) {
     $("#searchSampleAnalysisBtn").click();
   }
+
+  if($('#dim-analysis').css("display") === 'block'){
+    toggleDimPlot(true);
+  } 
 }
 
 
@@ -1553,17 +1571,28 @@ function removeSample(ev) {
 
 var imgContrainerTab = function () {
   $('#img-container').css("display", "block");
+  $('#dim-analysis').css("display", "none");
   $('#group-analysis').css("display", "none");
   $('#data-info').css("display", "none");
 }
+
+var dimAnalysisTab = function () {
+  $('#img-container').css("display", "none");
+  $('#dim-analysis').css("display", "block");
+  $('#group-analysis').css("display", "none");
+  $('#data-info').css("display", "none");
+}
+
 var groupAnalysisTab = function () {
   $('#img-container').css("display", "none");
+  $('#dim-analysis').css("display", "none");
   $('#group-analysis').css("display", "block");
   $('#data-info').css("display", "none");
 }
 
 var dataTab = function () {
   $('#img-container').css("display", "none");
+  $('#dim-analysis').css("display", "none");
   $('#group-analysis').css("display", "none");
   $('#data-info').css("display", "block");
 }
@@ -2664,10 +2693,13 @@ var showSampleInfo = function (sampleId, e) {
     $('#sample_infoBox').css('left', e.pageX - 20);
     $('#sample_infoBox').css('top', e.pageY + 30);
   }
+
+  highlight_sampl_dimplot(sampleId);
 }
 
 var hideSampleInfo = function () {
   $('#sample_infoBox').hide();
+  highlight_sampl_dimplot('');
 }
 
 //showing and hiding cite information
@@ -2739,7 +2771,7 @@ var getFilesNames = function (local_path) {
     htmlObj = $.parseHTML(out);
     files_in_dir = [];
     $(htmlObj).find('a').each(function (i) {
-      file_name = $(this).text(); // This is your rel value
+      file_name = $(this).text();
       file_name = file_name.trim();
       if (file_name.charAt(file_name.length - 1) === "/") {
         file_name = file_name.slice(0, -1);
@@ -2757,7 +2789,7 @@ var getGroupGenes = function (local_path, prepare_card = true) {
   $.get(local_path, function (out, status) {
     htmlObj = $.parseHTML(out);
     $(htmlObj).find('a').each(function (i) {
-      file_name = $(this).text(); // This is your rel value
+      file_name = $(this).text();
       file_name = file_name.trim();
       if (file_name.slice(-4) === ".csv") {
 
@@ -2798,6 +2830,190 @@ getGroupGenes('group_data/group_genes/');
 getGroupGenes('group_data/show_tables/', prepare_card = false);
 
 $("#dataInfoContent").load("config/data_location.html");
+
+// This function is called multiple times till all the samples are loaded.
+//Also, if spot size or opacity changes, this function re-creates the dimentionality visualization.
+var reloadDimplot = function(){
+
+  $('#dim_switch').prop("checked", false);
+
+  gloabl_all_barcodes = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => samp+'_'+el.barcode)).flat()
+ 
+  gloabl_all_point_clust_colors = Object.values(dataAllPatients).flatMap(element => element.map(pts => pts.cluster).map(clust => cluster_cols[clust]))
+  gloabl_all_point_clust =  Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => '<b>Sample:</b> '+samp+'<br><b>Cluster:</b> '+el.cluster+'</br><b> Barcode:'+el.barcode+'</b>')).flat()
+  global_dim_x = Object.values(dataAllPatients).flatMap(element => element.map(pts => pts['UMAP_1']));
+  global_dim_y = Object.values(dataAllPatients).flatMap(element => element.map(pts => pts['UMAP_2']));
+
+  
+  var dim_range_min_x = Math.min(...global_dim_x)
+  var dim_range_max_x = Math.max(...global_dim_x)
+  var dim_range_min_y = Math.min(...global_dim_y)
+  var dim_range_max_y = Math.max(...global_dim_y)
+
+  var dim_mapping_scale_x = d3.scaleLinear().domain([dim_range_min_x,dim_range_max_x]).range([0,global_spatial_cor_range]);
+  var dim_mapping_scale_y = d3.scaleLinear().domain([dim_range_min_y,dim_range_max_y]).range([0,global_spatial_cor_range]);
+  global_dim_x = global_dim_x.map(v => dim_mapping_scale_x(v));
+  global_dim_y = global_dim_y.map(v => dim_mapping_scale_y(v));
+
+  // var tsne_key
+  Plotly.newPlot('dimplots', [{
+    x: global_dim_x,
+    y: global_dim_y,
+    opacity:d3.select("#dimPointOpacity").property("value"),
+    marker:{size:parseInt(d3.select("#dimPointRaius").property("value")),
+         color: gloabl_all_point_clust_colors,
+         line: {
+          color: 'rgb(0, 0, 0)',
+          width: 0
+        }},
+    ids: gloabl_all_barcodes,
+    text: gloabl_all_point_clust,
+    hovertemplate:'%{text}<extra></extra>',
+    mode: 'markers'
+  }], {
+    xaxis: {
+      zeroline: false,
+      autotick: true,
+      ticks: '',
+      showticklabels: false,
+      range: [0, global_spatial_cor_range]
+    },
+    yaxis: {
+      autorange_opt: "reversed",
+      zeroline: false,
+      autotick: true,
+      ticks: '',
+      showticklabels: false,
+      range: [0, global_spatial_cor_range]
+    },
+    title:{
+      text:'UMAP - All samples'
+    },
+    margin:{
+      t:60
+    }
+  });
+
+}
+
+function shuffleInPlace(dim_name) {
+
+  var alt_data = {}
+  var title = {}
+  if(dim_name === null){
+    alt_data['ids'] = gloabl_all_barcodes;
+    alt_data['x'] = global_dim_x;
+    alt_data['y'] = global_dim_y;
+
+    title['text'] = 'UMAP - All samples';
+  }else if(dim_name === "spatial"){
+    let samp_spot_x = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => samp === sampleId?el.pxl_col_in_fullres: null)).flat()
+    let samp_spot_y = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => samp === sampleId?el.pxl_row_in_fullres: null)).flat()
+    
+    alt_data['x'] = samp_spot_x.map(v => v * scaleResolutions[sampleId]);
+    alt_data['y'] = samp_spot_y.map(v => global_spatial_cor_range - v * scaleResolutions[sampleId]);
+
+    title['text'] = sampleId;
+  }
+
+  return({data:alt_data, title:title});
+}
+
+// Mouse over hilight or filter sample points
+function highlight_sampl_dimplot(selSampleID){
+
+  if($('#dim_switch').prop("checked")){
+    return(null);
+  }
+
+  if($('#dimFilterPoints').prop("checked")){
+    let curr_opacity = d3.select("#dimPointOpacity").property("value");
+    let _opacity = curr_opacity
+    if(selSampleID !== '') {
+      _opacity = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => samp === selSampleID? curr_opacity:0)).flat()
+    }
+    Plotly.animate('dimplots', {
+      data: [{marker:{
+        opacity :_opacity
+      }
+    }],
+    },
+          {transition: {
+                  duration: 200,
+                  easing: 'linear'
+                },
+          frame :{
+                  duration:200,
+                  redraw:false
+                }
+          }
+        );
+  }else{
+    let _border_width = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => samp === selSampleID? 1:0)).flat()
+    Plotly.animate('dimplots', {
+      data: [{marker:{
+        line:{
+          width : _border_width
+        }
+      },}],
+    },
+          {transition: {
+                  duration: 200,
+                  easing: 'linear'
+                },
+          frame :{
+                  duration:200,
+                  redraw:false
+                }
+          }
+        );
+  }
+  
+}
+
+
+function toggleDimPlot(switchSample = false) {
+  var viewSpatial = $('#dim_switch').prop("checked");
+  
+  if(!switchSample){
+    $('#dim_switch').prop("checked", !viewSpatial);
+  }else if(switchSample & !$('#dim_switch').prop("checked")){
+    return(null);
+  }
+ 
+  var dim_name = null;
+  if($('#dim_switch').prop("checked")){
+    dim_name = "spatial";
+  }
+  var new_dim_data = shuffleInPlace(dim_name);
+  Plotly.animate('dimplots', {
+    data: [new_dim_data.data]
+  },
+        {transition: {
+                duration: $('#dimToggleDuration').prop("value"),
+                easing: 'linear'
+              },
+        frame :{
+                duration:$('#dimToggleDuration').prop("value"),
+                redraw:false
+              }
+        }
+      );
+      Plotly.animate('dimplots', {
+        layout: {
+          title: {
+            text:new_dim_data.title.text
+          },
+        },
+      },
+            {transition: {
+                    duration: 5,
+                    easing: 'linear'
+                  }
+            }
+          );
+}
+
 
 // loading the csv reader for group tab
 window.onload = () => {

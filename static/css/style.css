@@ -522,7 +522,9 @@ span + span {
 }
 
 @keyframes rotate {
-    100%{transform:rotate(36deg);}
+    100%{transform:rotate(36deg);
+    }
+    
   }
 
 .tTestMsg {
@@ -634,3 +636,9 @@ img:hover{
 .pointer-click:hover{
     cursor: pointer;
   }
+
+#dimplots{
+    width: 700px;
+    height: 700px;
+    align-items: center;
+}

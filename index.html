@@ -58,7 +58,11 @@
 	<ul class="nav nav-tabs" id="vizTab" role="tablist">
 		<li class="nav-item" role="presentation" onclick="imgContrainerTab()">
 			<a class="nav-link active" id="img-contrainer-tab" data-bs-toggle="tab" href="#img-container" role="tab"
-				aria-selected="true" aria-controls="img-container">Individual Analysis</a>
+				aria-selected="true" aria-controls="img-container">Individual Viz.</a>
+		</li>
+		<li class="nav-item" role="presentation" onclick="dimAnalysisTab()">
+			<a class="nav-link" id="dim-analysis-tab" href="#dim-analysis" data-bs-toggle="tab" role="tab"
+				aria-controls="dim-analysis" aria-selected="false">Dim Viz.</a>
 		</li>
 		<li class="nav-item" role="presentation" onclick="groupAnalysisTab()">
 			<a class="nav-link" id="group-analysis-tab" href="#group-analysis" data-bs-toggle="tab" role="tab"
@@ -354,7 +358,7 @@
 
 					</div>
 				</div>
-				<div class="col-6">
+				<div class="col-6" id="centerViz">
 					<svg id="svg">
 						<rect width="100%" height="100%" fill="#000000" opacity="0.0" id="imgOpacityRect" />
 					</svg>
@@ -369,6 +373,56 @@
 					<div class="right-element" id="cards">
 						<div id="clustInfo" class="clustinfoScroll"></div>
 					</div>
+				</div>
+			</div>
+		</div>
+		<div class="tab-pane fade" id="dim-analysis" role="tabpanel" aria-labelledby="dim-analysis-tab">
+			<div class="dim-analysis-tab-content">
+				<div class="d-flex justify-content-center align-items-center" style="margin-top: 10px; margin-bottom:10px">
+					<!-- <div id ="dim_switch"></div> -->
+					<div class="row">
+						<div class="col d-flex col-xs-4">
+							<i class='bi bi-speedometer' style="padding-left: 20px; padding-right: 5px;"
+							data-toggle="tooltip" data-placement="bottom"  title="Adjust transition speed."></i>
+							<input type="range" class="form-range" min="100" max="2000" step="100" value="1000" id="dimToggleDuration"
+							data-toggle="tooltip" data-placement="bottom"  title="Adjust transition speed.">
+						</div>
+						<div class="col d-flex col-xs-4">
+							<i class='bi bi-vinyl' style="padding-left: 20px; padding-right: 5px;"
+							data-toggle="tooltip" data-placement="bottom"  title="Adjust spot size."></i>
+							<input type="range" class="form-range" min="1" max="5" value="3" id="dimPointRaius"
+							data-toggle="tooltip" data-placement="bottom"  title="Adjust spot size." onchange="reloadDimplot();">
+						</div>
+						<div class="col d-flex col-xs-4">
+							<i class='bi bi-sun' style="padding-left: 20px; padding-right: 5px;"
+							data-toggle="tooltip" data-placement="bottom"  title="Adjust spot opacity."></i>
+							<input type="range" class="form-range" min="0" max="1" step="0.1" value="0.9" id="dimPointOpacity"
+							data-toggle="tooltip" data-placement="bottom"  title="Adjust spot opacity." onchange="reloadDimplot();">
+						</div>
+						<div class="col d-flex col-xs-4">
+							<i class='bi bi-back' style="padding-left: 20px; padding-right: 5px;"
+							data-toggle="tooltip" data-placement="bottom"  title="Show only sample specific spots when mouse pointer is moved on a sample icon above."></i>
+							<div class="form-check form-switch">
+								<input class="form-check-input pointer-click" type="checkbox" id="dimFilterPoints"
+								data-toggle="tooltip" data-placement="bottom"  title="Show only sample specific spots when mouse pointer is moved on a sample icon above.">
+							</div>
+						</div>
+					</div>
+				</div>
+					<div class="d-flex justify-content-center align-items-center" style="margin-top: 10px; margin-bottom:10px">
+					<div class="row">
+						<div class="d-flex col-xs-4" style="width:fit-content">
+							<input type="checkbox" class="btn-check" id="dim_switch" autocomplete="off" onclick="toggleDimPlot();">
+							<label class="btn btn-info" for="dim_switch" onclick="toggleDimPlot();">
+								<i class='bi bi-toggles'></i>
+								Toggle View
+							</label>
+						</div>
+					</div>
+					</div>
+				
+				<div class="d-flex justify-content-center align-items-center">
+					<div id ="dimplots"></div>
 				</div>
 			</div>
 		</div>
