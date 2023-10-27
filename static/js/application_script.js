@@ -638,6 +638,12 @@ updateSampleGenes = function (sampleId) {
     source: genes_with_meta
   });
 
+  $("#searchDimVizTxt").autocomplete({
+    delay: 100,
+    minLength: 2,
+    source: genes_with_meta
+  });
+
   $("#searchGroupAnalysisTxt").autocomplete({
     delay: 100,
     minLength: 2,
@@ -892,6 +898,7 @@ var getGeneExprsAll = function(gene){
 }
 var showExpressions = function (sampleId, gene) {
 
+  if ($('#frozen').is(':checked')) return(null);
   //checking color scale
   //if auto-domain in checked
   if ($('#autoDomain').is(':checked')) {
@@ -1176,9 +1183,10 @@ var loadHeatmap = function (griddata) {
       .style("stroke", "#B0C4DE")
       .style("opacity", 0.8);
 
-    removeExpressions(sampleId, d.gene);
     $("#right_" + d.gene.trim()).css("color", "black");
     $("#right_" + d.gene.trim()).css("fontWeight", "normal");
+    removeExpressions(sampleId, d.gene);
+    
   }
 
   // add the squares
@@ -2742,10 +2750,36 @@ var searchSampleAnalysis = function () {
   }
 }
 
+var clearSampleSrh = function(){
+  $("#searchSampleAnalysisTxt").val("");
+  removeExpressions();
+}
+
+var searchDimViz = function () {
+  g_serch = $("#searchDimVizTxt").val()
+  if (g_serch !== "") {
+    color_gene_dimplot(g_serch);
+  } else {
+    color_gene_dimplot(null);
+  }
+}
+
+var clearDimViz = function(){
+  $("#searchDimVizTxt").val("");
+  color_gene_dimplot(null);
+}
+
 var searchGroupAnalysis = function () {
-  g_search = $("#searchGroupAnalysisTxt").val()
+  g_search = $("#searchGroupAnalysisTxt").val();
   updateBox(g_search);
   updateGrpHeat(g_search);
+}
+
+var clearGrpSrh = function(){
+  $("#searchGroupAnalysisTxt").val("");
+  removeBox();
+  removeGrpHeat();
+  $('#grpCompareStats').css("visibility", "hidden");
 }
 
 // Search on enter key pressed
@@ -2756,6 +2790,16 @@ srhSampleTxt.addEventListener("keypress", function (event) {
     document.getElementById("searchSampleAnalysisBtn").click();
   }
 });
+
+// Search on enter key pressed
+var srhDimTxt = document.getElementById("searchDimVizTxt");
+srhDimTxt.addEventListener("keypress", function (event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    document.getElementById("searchDimVizTxtBtn").click();
+  }
+});
+
 // Search on enter key pressed
 var srhGrpTxt = document.getElementById("searchGroupAnalysisTxt");
 srhGrpTxt.addEventListener("keypress", function (event) {
@@ -2891,7 +2935,9 @@ var reloadDimplot = function(){
     },
     margin:{
       t:60
-    }
+    },
+    // plot_bgcolor:"black",
+    // paper_bgcolor:"#FFF3"
   });
 
 }
@@ -2971,6 +3017,75 @@ function highlight_sampl_dimplot(selSampleID){
   
 }
 
+function color_gene_dimplot(gene){
+
+  var gene_colors = null;
+  var point_text = null;
+  if(gene === null){
+    gene_colors = gloabl_all_point_clust_colors
+    point_text = gloabl_all_point_clust;
+  }else{
+    //gene_colors = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => colorScale(getSpotExpressions(samp, el.barcode, gene)))).flat();
+    gene_colors = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => getSpotExpressions(samp, el.barcode, gene))).flat()
+    point_text = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => '<b>Sample:</b> '+samp+'<br><b>Cluster:</b> '+el.cluster+'</br><b> Barcode:</b>'+el.barcode+'</br><b>'+gene+':</b>'+ getSpotExpressions(samp, el.barcode, gene))).flat();
+  }
+    
+    Plotly.animate('dimplots', {
+      data: [{marker:{
+        color :gene_colors,
+        colorscale: 'Portland',//app_config.colorscale_heatmap_individual_analysis.substr(11),
+        // reverse:true,
+        showscale: gene !== null,
+        colorbar:{
+          thickness:10,
+          len: 0.5
+        }
+      },
+      text: point_text,
+    },
+    ],
+    },
+      {transition: {
+                  duration: 200,
+                  easing: 'linear'
+                },
+          frame :{
+                  duration:200,
+                  redraw:false
+                }
+          }
+        );
+  if(gene !== null){
+    Plotly.animate('dimplots', {
+      data: [{marker:{
+        showscale: true}
+            },
+          ],
+      },
+      {transition: {
+                  duration: 5,
+                  easing: 'linear'
+                }
+          }
+        );
+  }else{
+    Plotly.animate('dimplots', {
+      data: [{marker:{
+        showscale: false
+      }
+    },
+    ],
+    },
+      {transition: {
+                  duration: 5,
+                  easing: 'linear'
+                }
+          }
+        );
+  }
+      
+  
+}
 
 function toggleDimPlot(switchSample = false) {
   var viewSpatial = $('#dim_switch').prop("checked");

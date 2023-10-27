@@ -421,8 +421,34 @@
 					</div>
 					</div>
 				
-				<div class="d-flex justify-content-center align-items-center">
-					<div id ="dimplots"></div>
+				<div>
+					<div class="row">
+						<div class="col-3"></div>
+						<div class="d-flex col-6 justify-content-center align-items-center">
+							<div id ="dimplots"></div>
+						</div>
+						<div class="col-3">
+							<div class="row">
+								<div class="col search-sample-analysis">
+									<input class="form-group-append" type="text" placeholder="Search gene or metadata.." value=""
+							id="searchDimVizTxt" style="height: 100%;">
+									<span class="input-append">
+										<span class="btn btn-outline-primary ms-n3" type="button" onclick="searchDimViz();"
+								id="searchDimVizTxtBtn">
+										<i class="bi bi-search"></i>
+										</span>
+									</span>
+
+									<span class="btn btn-outline-primary ms-n3" type="button" onclick="clearDimViz();"
+								id="clearDimVizBtn">
+										<i class="bi bi-eraser-fill"></i>Clear
+										</span>
+								</div>
+								
+							</div>
+							
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -562,6 +588,10 @@
 										onclick="searchGroupAnalysis()" id="searchGroupAnalysisBtn">
 										<i class="bi bi-search"></i>
 									</span>
+									<span class="btn btn-outline-primary ms-n3" type="button" onclick="clearGrpSrh();"
+									    id="clrGrpSrhTxtBtn">
+										<i class="bi bi-eraser-fill"></i>
+										</span>
 								</span>
 								<span style="display: flex; align-items: center;">
 									<label for="csvPicker" data-toggle="tooltip" data-placement="bottom"  title="Upload csv file containing genes. No formatting required.">
