@@ -159,7 +159,6 @@ var loadData = function (samples) {
     item.classList.add("pointer-click");
 
     let img = document.createElement("img");
-    // img.classList.add("border");
     img.classList.add("dataloadingbox");
     img.setAttribute("id", data_id);
     img.setAttribute("onclick", "imgClick(this)");
@@ -167,6 +166,7 @@ var loadData = function (samples) {
     img.setAttribute("onmouseleave", "hideSampleInfo()");
     img.setAttribute("draggable", true);
     img.setAttribute("ondragstart", "sampleDrag(event)");
+    img.classList.add("icon_img");
 
     img.src = "data/" + data_id + "/" + app_config.image_file_name_high_resolution;
     item.appendChild(img);
@@ -237,7 +237,6 @@ var loadData = function (samples) {
             global_first_load = true;
             first_sample.first()[0].firstChild.click();
             global_first_load = false;
-            // global_loaded_samples.push(sample_name);
           }
         });
       },
@@ -282,6 +281,7 @@ var loadData = function (samples) {
                 });
 
                 //* read sparse matrix
+                let spotExpressions_sub = {}
                 Papa.parse(m_file, {
                   delimiter: ' ',
                   skipEmptyLines: true,
@@ -299,40 +299,41 @@ var loadData = function (samples) {
                     chunk = chunk.join("\n");
                     return (chunk)
                   },
-                  complete: function (results, filename) {
-                    dataloadingAlertOn();
-                    let spotExpressions_sub = {}
-                    results.data.forEach(function (item, index) {
-                      var b_idx = item[1];
-                      var g_idx = item[0];
-                      if (generated_file_from === 'R') {
-                        b_idx = b_idx - 1;
-                        g_idx = g_idx - 1;
-                      }
-
-                      var b = sample_barcodes[b_idx]//barcode
-                      var g = sample_genes[g_idx] //gene
-                      if (b in spotExpressions_sub) {
-                        spotExpressions_sub[b][g] = Number(item[2])
-                      } else {
-                        spotExpressions_sub[b] = {}
-                        spotExpressions_sub[b][g] = Number(item[2])
-                      }
-
-                    })
-                    spotExpressions[data_id] = spotExpressions_sub;
-                    updateSampleGenes(data_id);//updating the search list genes
-
+                  before:function(filename, inputElem){
                     sample_name = filename.split("/")
                     sample_name = sample_name[sample_name.length - 2];
                     dataloadedAlertOn(sample_name);
+                    
+                  },
+                  step: function(result, parser){
+                    item = result.data;
+                    var b_idx = item[1];
+                    var g_idx = item[0];
+                    if (generated_file_from === 'R') {
+                      b_idx = b_idx - 1;
+                      g_idx = g_idx - 1;
+                    }
+
+                    var b = sample_barcodes[b_idx]//barcode
+                    var g = sample_genes[g_idx] //gene
+                    if (b in spotExpressions_sub) {
+                        spotExpressions_sub[b][g] = Number(item[2])
+                    } else {
+                      spotExpressions_sub[b] = {}
+                      spotExpressions_sub[b][g] = Number(item[2])
+                    }
+                  },
+                  complete:function(){
+                    spotExpressions[data_id] = spotExpressions_sub;
+                    updateSampleGenes(data_id);//updating the search list genes
 
                     //Click the first sample
                     var first_sample = $('#sampleImages').children().eq(1);
                     global_first_load = true;
                     first_sample.first()[0].firstChild.click();
-                    reloadDimplot();
                     global_first_load = false;
+                    reloadDimplot();
+                    dataloadedAlertOn(data_id);
                   }
                 })
               }
@@ -727,7 +728,6 @@ updateClusterInfo = function (sampleId) {
         $(relaodClustIcon).css({ 'transform': 'rotate(' + now + 'deg)' });
       }
     });
-    // i=!i;
 
   })
   allBtnDiv.appendChild(relaodClustIcon);
@@ -901,6 +901,7 @@ var showExpressions = function (sampleId, gene) {
   if ($('#frozen').is(':checked')) return(null);
   //checking color scale
   //if auto-domain in checked
+  $("#searchSampleAnalysisTxt").val(gene);
   if ($('#autoDomain').is(':checked')) {
     var expres = getGeneExprsAll(gene);
     var min_expr = Math.min(0, Math.min(...expres));
@@ -920,7 +921,6 @@ var showExpressions = function (sampleId, gene) {
       if(d_min >= 1){
         d_min = Math.min(d_min/100, 0.99);
       }
-
       if(d_max < 0){
         d_max = 1;
       }
@@ -937,13 +937,11 @@ var showExpressions = function (sampleId, gene) {
       }else{
         min_expr = ss.quantile(expres, d_min);
       }
-
       if(max_expr == 1){
         max_expr = Math.max(...expres);
       }else{
         max_expr = ss.quantile(expres, d_max);
       }
-      
       changeColorScale(min_expr, max_expr, null);
     }
   }
@@ -964,6 +962,7 @@ var showExpressions = function (sampleId, gene) {
 }
 
 removeExpressions = function () {
+  $("#searchSampleAnalysisTxt").val("");
   svg.selectAll('circle')
     .transition()
     .duration(10)
@@ -1109,122 +1108,6 @@ var svgHeatmap = d3.select("#spotExprViz")
 var colorScale = d3.scaleSequential()
   .interpolator(eval("d3." + app_config.colorscale_heatmap_individual_analysis))
   .domain(app_config.colorscale_domain);
-
-var loadHeatmap = function (griddata) {
-  markerGridData = griddata;
-  var rows = d3.map(markerGridData, function (d) { return d.row; }).values();
-  var cols = d3.map(markerGridData, function (d) { return d.col; }).keys();
-
-  var clust_rows = d3.map(markerGridData, function (d) { return d.cluster; }).values();
-  // Build X scales and axis:
-  var xScaleHeatmap = d3.scaleBand()
-    .range([0, widthHeatmap])
-    .domain(cols)
-    .padding(0.05);
-
-  //Build Y scales and axis:
-  var yScaleHeatmap = d3.scaleBand()
-    .range([0, heightHeatmap])
-    .domain(Array.from(rows, d => d.row))
-    .padding(0.05);
-
-  var yConti = d3.scaleLinear()
-    .range([0, heightHeatmap])
-    .domain([0, d3.max(clust_rows, d => d.row)]);
-
-  //removing all subelements
-  svgHeatmap.selectAll("*").remove();
-  $('#colorLegend').empty();
-
-  //remove tooltip if already there
-  d3.select("#leftVizTooltip").remove();
-  // create a tooltip
-  var tooltipHeatmap = d3.select("#leftViz")
-    .append("div")
-    .attr("id", "leftVizTooltip")
-    .style("opacity", 0)
-    .attr("class", "tooltip")
-    .style("background-color", "white")
-    .style("border", "solid")
-    .style("border-width", "2px")
-    .style("border-radius", "5px")
-    .style("padding", "5px")
-
-  // Three function that change the tooltip when user hover / move / leave a cell
-  var mouseoverHeatmap = function (d) {
-    tooltipHeatmap
-      .style("opacity", 1)
-    d3.select(this)
-      .style("stroke", "black")
-      .style("opacity", 1)
-  }
-  var mousemoveHeatmap = function (d) {
-    tooltipHeatmap
-      .html(function () {//checks if any spot is frozen or not then shows the expr
-        if (!$('#frozen').is(':checked')) {
-          return d.gene;
-        } else {
-          return d.gene + " : " + getSpotExpressions(sampleId, global_current_barcode, d.gene);
-        }
-      })
-      .style("left", (d3.event.pageX - 20) + "px")
-      .style("top", (d3.event.pageY - 50) + "px");
-
-    showExpressions(sampleId, d.gene);
-
-    $("#right_" + d.gene.trim()).css("color", "red");
-    $("#right_" + d.gene.trim()).css("fontWeight", 500);
-
-  }
-  var mouseleaveHeatmap = function (d) {
-    tooltipHeatmap
-      .style("opacity", 0)
-    d3.select(this)
-      .style("stroke", "#B0C4DE")
-      .style("opacity", 0.8);
-
-    $("#right_" + d.gene.trim()).css("color", "black");
-    $("#right_" + d.gene.trim()).css("fontWeight", "normal");
-    removeExpressions(sampleId, d.gene);
-    
-  }
-
-  // add the squares
-  svgHeatmap.selectAll(null)
-    .data(markerGridData)
-    .enter()
-    .append("rect")
-    .attr("x", function (d) { return xScaleHeatmap(d.col) })
-    .attr("y", function (d) { return yScaleHeatmap(d.row) })
-    .attr("rx", 4)
-    .attr("ry", 4)
-    .attr("width", xScaleHeatmap.bandwidth())
-    .attr("height", yScaleHeatmap.bandwidth())
-    .attr("id", function (d) { return "left_" + d.gene.trim() })
-    .style("fill", function (d) { return colorScale(d.expr) })
-    .style("stroke-width", 1)
-    .style("stroke", "#B0C4DE")
-    .style("opacity", 0.8)
-    .attr("class", "pointer-click")
-    .on("mouseover", mouseoverHeatmap)
-    .on("mousemove", mousemoveHeatmap)
-    .on("mouseleave", mouseleaveHeatmap)
-    .on("click", function (d) { genecardPopup(d.gene); });
-
-  //adding colored line corresponding to the clusters to the left of the heatmap
-  svgHeatmap.selectAll(null)
-    .data(clust_rows)
-    .enter()
-    .append("line")
-    .style("stroke", function (d) { return cluster_cols[d.cluster]; })
-    .style("stroke-width", 10)
-    .attr("x1", -10)
-    .attr("y1", function (d, i) { if (i === 0) { return yConti(0); } else { return yConti(clust_rows[i - 1].row) - 1.5; } })
-    .attr("x2", -10)
-    .attr("y2", function (d, i) { return yConti(d.row) - 1.5; })
-    .on("mouseover", function (d) { highlightClustSpots(d.cluster); })
-    .on("mouseleave", clearHighlightClustSpots);
-
 
   // ----- showing color legend ------
   // The legend code used from https://stackoverflow.com/a/64807612/2374707
@@ -1386,6 +1269,125 @@ var loadHeatmap = function (griddata) {
   });
   //---------------
 
+var loadHeatmap = function (griddata) {
+  markerGridData = griddata;
+  var rows = d3.map(markerGridData, function (d) { return d.row; }).values();
+  var cols = d3.map(markerGridData, function (d) { return d.col; }).keys();
+
+  var clust_rows = d3.map(markerGridData, function (d) { return d.cluster; }).values();
+  // Build X scales and axis:
+  var xScaleHeatmap = d3.scaleBand()
+    .range([0, widthHeatmap])
+    .domain(cols)
+    .padding(0.05);
+
+  //Build Y scales and axis:
+  var yScaleHeatmap = d3.scaleBand()
+    .range([0, heightHeatmap])
+    .domain(Array.from(rows, d => d.row))
+    .padding(0.05);
+
+  var yConti = d3.scaleLinear()
+    .range([0, heightHeatmap])
+    .domain([0, d3.max(clust_rows, d => d.row)]);
+
+  //removing all subelements
+  svgHeatmap.selectAll("*").remove();
+  // $('#colorLegend').empty();
+
+  //remove tooltip if already there
+  d3.select("#leftVizTooltip").remove();
+  // create a tooltip
+  var tooltipHeatmap = d3.select("#leftViz")
+    .append("div")
+    .attr("id", "leftVizTooltip")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-width", "2px")
+    .style("border-radius", "5px")
+    .style("padding", "5px")
+
+  // Three function that change the tooltip when user hover / move / leave a cell
+  var mouseoverHeatmap = function (d) {
+    tooltipHeatmap
+      .style("opacity", 1)
+    d3.select(this)
+      .style("stroke", "black")
+      .style("opacity", 1)
+
+    showExpressions(sampleId, d.gene);
+  }
+  var mouseEnterHeatmap = function (d) {
+    tooltipHeatmap
+      .html(function() {//checks if any spot is frozen or not then shows the expr
+        if (!$('#frozen').is(':checked')) {
+          return d.gene;
+        } else {
+          return d.gene + " : " + getSpotExpressions(sampleId, global_current_barcode, d.gene);
+        }
+      })
+    .style("left", (d3.event.pageX - 20) + "px")
+    .style("top", (d3.event.pageY - 50) + "px");
+
+    $("#right_" + d.gene.trim()).css("color", "red");
+    $("#right_" + d.gene.trim()).css("fontWeight", 500);
+
+    showExpressions(sampleId, d.gene);
+  }
+
+  var mouseleaveHeatmap = function (d) {
+    tooltipHeatmap
+      .style("opacity", 0)
+    d3.select(this)
+      .style("stroke", "#B0C4DE")
+      .style("opacity", 0.8);
+
+    $("#right_" + d.gene.trim()).css("color", "black");
+    $("#right_" + d.gene.trim()).css("fontWeight", "normal");
+    removeExpressions();
+    return(null);
+  }
+
+  // add the squares
+  svgHeatmap.selectAll(null)
+    .data(markerGridData)
+    .enter()
+    .append("rect")
+    .attr("x", function (d) { return xScaleHeatmap(d.col) })
+    .attr("y", function (d) { return yScaleHeatmap(d.row) })
+    .attr("rx", 4)
+    .attr("ry", 4)
+    .attr("width", xScaleHeatmap.bandwidth())
+    .attr("height", yScaleHeatmap.bandwidth())
+    .attr("id", function (d) { return "left_" + d.gene.trim() })
+    .style("fill", function (d) { return colorScale(d.expr) })
+    .style("stroke-width", 1)
+    .style("stroke", "#B0C4DE")
+    .style("opacity", 0.8)
+    .attr("class", "pointer-click")
+    .on("mouseover", mouseoverHeatmap)
+    .on("mouseenter", mouseEnterHeatmap)
+    .on("mouseleave", mouseleaveHeatmap)
+    .on("click", function (d) { genecardPopup(d.gene); });
+
+  //adding colored line corresponding to the clusters to the left of the heatmap
+  svgHeatmap.selectAll(null)
+    .data(clust_rows)
+    .enter()
+    .append("line")
+    .style("stroke", function (d) { return cluster_cols[d.cluster]; })
+    .style("stroke-width", 10)
+    .attr("x1", -10)
+    .attr("y1", function (d, i) { if (i === 0) { return yConti(0); } else { return yConti(clust_rows[i - 1].row) - 1.5; } })
+    .attr("x2", -10)
+    .attr("y2", function (d, i) { return yConti(d.row) - 1.5; })
+    .on("mouseover", function (d) { highlightClustSpots(d.cluster); })
+    .on("mouseleave", clearHighlightClustSpots);
+
+
+
   //Build Y scales and axis:
   var y_clustNo = d3.scaleLinear()
     .range([0, heightHeatmap])
@@ -1411,18 +1413,6 @@ var loadHeatmap = function (griddata) {
     .style("fill", "grey")
     .style("max-width", 10)
     .text(function (d, i) { return d.cluster; });
-
-  //adding text message at the top of the heatmap
-  svgHeatmap.append("text")
-    .attr("x", -20)
-    .attr("y", yScaleHeatmap.range()[1] + 10)
-    .attr("id", "heatmapNote")
-    .attr("text-anchor", "left")
-    .style("font-size", "10px")
-    .style("fill", "grey")
-    .text(app_config.heatmap_note +
-      '[' + app_config.colorscale_domain[0] + ',' + app_config.colorscale_domain[1] + ']')
-    .call(wrap, 300);
 }
 
 
@@ -1446,7 +1436,13 @@ var changeColorScale = function (domainMin, domainMax, clrScale) {
     .domain(app_config.colorscale_domain);
 
   // closeColorSidePanel();
-  loadHeatmap(getGridData(sampleId))
+  $('#colorLegend').empty();
+  legend({
+    color: colorScale,
+    title: "Expression",
+    legendContainer: "colorLegend"
+  });
+  if(clrScale !== null)loadHeatmap(getGridData(sampleId))
 }
 
 //Changing domain select to auto or manual
@@ -1857,7 +1853,6 @@ var addGroupGenesTabsAsTable = function (tabGenesContainer, tabGenesData, activa
   let tbody = document.createElement('tbody');
 
   for (let i = 0; i < tabGenesData.length; i++) {
-    // let row = tbl.insertRow();
     let row = document.createElement("tr");
     for (let j = 0; j < header_cols.length; j++) {
       let c = row.insertCell();
@@ -1903,7 +1898,6 @@ var addGroupGenesTabsAsTable = function (tabGenesContainer, tabGenesData, activa
               genecardPopup(e.target.innerHTML);
             }
           });
-          //  }
           g_text.innerHTML = c_gene;
           c.appendChild(g_text);
         }
@@ -2099,7 +2093,6 @@ var prepareDataGrpHeat = function (gene) {
     type: 'heatmap',
     colorscale: app_config.colorscale_heatmap_group_analysis,
     hoverinfo: 'text',
-    // reversescale : true,
     hoverongaps: true
   })
   var annotations = []
@@ -2170,7 +2163,6 @@ var prepareStatsData = function (gene, d) {
 var prepareStatsDataPsudoBulk = function (gene, d) {
 
   const k = Object.keys(cluster_names).sort((a, b) => a.localeCompare(b, 'en', { numeric: true }))[Object.keys(cluster_names).length - d - 1]
-  // const clust_name = cluster_names[k]
   let num_groups = d3.select("#numGroups").property("value");
 
   //For single group one vs rest comparision
@@ -2246,8 +2238,6 @@ var prepareStatsDataSingleGroup = function (gene, d) {
       }
       return res;
     }, {});
-
-    // console.log(grouped_res);
 
     for (let cl in grouped_res) {
       let all_spots_expr = grouped_res[cl].map(function (r) {
@@ -2376,7 +2366,6 @@ var updateCompStatInfo = function (compData, gene, clusterName) {
         } else {
           pVal = '--';
           adj_pVal = '--';
-          // significance = '';
           tval = 'NA';
           df = 'NA';
         }
@@ -2523,12 +2512,10 @@ async function t_test(gene, d) {
     }
     return test_results;
   }
-
   return null;
 }
 
 async function t_test_allgenes() {
-
   var de_result_array = [];
   const clust_ks = Object.keys(cluster_names).sort((a, b) => a.localeCompare(b, 'en', { numeric: true }))
   for (let k = 0; k < clust_ks.length; k++) {
@@ -2540,12 +2527,9 @@ async function t_test_allgenes() {
       }
     }
   }
-
-
   // download csv using papa papa parser
   //https://codepen.io/anon/pen/Oovegj
   var csv = Papa.unparse(de_result_array);
-
   var csvData = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   var csvURL = null;
   if (navigator.msSaveBlob) {
@@ -2885,8 +2869,8 @@ var reloadDimplot = function(){
  
   gloabl_all_point_clust_colors = Object.values(dataAllPatients).flatMap(element => element.map(pts => pts.cluster).map(clust => cluster_cols[clust]))
   gloabl_all_point_clust =  Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => '<b>Sample:</b> '+samp+'<br><b>Cluster:</b> '+el.cluster+'</br><b> Barcode:'+el.barcode+'</b>')).flat()
-  global_dim_x = Object.values(dataAllPatients).flatMap(element => element.map(pts => pts['UMAP_1']));
-  global_dim_y = Object.values(dataAllPatients).flatMap(element => element.map(pts => pts['UMAP_2']));
+  global_dim_x = Object.values(dataAllPatients).flatMap(element => element.map(pts => pts[app_config.dim_plot+'_1']));
+  global_dim_y = Object.values(dataAllPatients).flatMap(element => element.map(pts => pts[app_config.dim_plot+'_2']));
 
   
   var dim_range_min_x = Math.min(...global_dim_x)
@@ -2931,7 +2915,7 @@ var reloadDimplot = function(){
       range: [0, global_spatial_cor_range]
     },
     title:{
-      text:'UMAP - All samples'
+      text:app_config.dim_plot +' - All samples'
     },
     margin:{
       t:60
@@ -2951,7 +2935,7 @@ function shuffleInPlace(dim_name) {
     alt_data['x'] = global_dim_x;
     alt_data['y'] = global_dim_y;
 
-    title['text'] = 'UMAP - All samples';
+    title['text'] = app_config.dim_plot + ' - All samples';
   }else if(dim_name === "spatial"){
     let samp_spot_x = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => samp === sampleId?el.pxl_col_in_fullres: null)).flat()
     let samp_spot_y = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => samp === sampleId?el.pxl_row_in_fullres: null)).flat()
@@ -3025,7 +3009,6 @@ function color_gene_dimplot(gene){
     gene_colors = gloabl_all_point_clust_colors
     point_text = gloabl_all_point_clust;
   }else{
-    //gene_colors = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => colorScale(getSpotExpressions(samp, el.barcode, gene)))).flat();
     gene_colors = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => getSpotExpressions(samp, el.barcode, gene))).flat()
     point_text = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => '<b>Sample:</b> '+samp+'<br><b>Cluster:</b> '+el.cluster+'</br><b> Barcode:</b>'+el.barcode+'</br><b>'+gene+':</b>'+ getSpotExpressions(samp, el.barcode, gene))).flat();
   }
@@ -3033,8 +3016,7 @@ function color_gene_dimplot(gene){
     Plotly.animate('dimplots', {
       data: [{marker:{
         color :gene_colors,
-        colorscale: 'Portland',//app_config.colorscale_heatmap_individual_analysis.substr(11),
-        // reverse:true,
+        colorscale: 'Portland',
         showscale: gene !== null,
         colorbar:{
           thickness:10,
