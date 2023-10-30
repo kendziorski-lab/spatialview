@@ -70,9 +70,6 @@ if(app_config.colorscale_autoDomain){
   $('#pctColRange').prop('disabled',true);
 }
 
-
-//TODO: Move meta config to config.json
-app_config.meta_key = "META/"
 //===============  Application Configuration ends ==========
 
 var getSpotExpressions = function (_sample_id, _barcode, _gene) {
@@ -86,8 +83,12 @@ var getSpotExpressions = function (_sample_id, _barcode, _gene) {
         meta_col = _gene.substring(app_config.meta_key.length)
         var meta_res = dataAllPatients[_sample_id].map(function (r) { if (r['barcode'] === _barcode) return r[meta_col] });
         meta_res = meta_res.filter(Boolean)
-        if (meta_res.length === 1 & typeof meta_res[0] === "number") {
-          return (parseFloat(meta_res[0]));
+        if (meta_res.length === 1){
+          if(typeof meta_res[0] === "number") {
+            return (parseFloat(meta_res[0]));
+          }else{
+            return(meta_res[0])
+          }
         } else {
           return (0);
         }
@@ -904,6 +905,7 @@ var showExpressions = function (sampleId, gene) {
   $("#searchSampleAnalysisTxt").val(gene);
   if ($('#autoDomain').is(':checked')) {
     var expres = getGeneExprsAll(gene);
+    expres = expres.filter(x => typeof x === "number");
     var min_expr = Math.min(0, Math.min(...expres));
     var max_expr = Math.max(...expres);
     if (min_expr !== Infinity & min_expr !== NaN & min_expr !== undefined & 
@@ -952,7 +954,12 @@ var showExpressions = function (sampleId, gene) {
     .ease(d3.easeLinear)
     .style("fill", function (d) {
       if (selectedClusters.includes("clust" + d.cluster)) {
-        return colorScale(getSpotExpressions(sampleId, d.barcode, gene.trim()))
+        const g_expr = getSpotExpressions(sampleId, d.barcode, gene.trim());
+        if(typeof g_expr === "number"){
+          return colorScale(g_expr);
+        }else{
+          return colorScaleDiscrete(g_expr);
+        }
       }
       else { return "rgba(0, 0, 0, 0)" }
     }
@@ -1109,6 +1116,7 @@ var colorScale = d3.scaleSequential()
   .interpolator(eval("d3." + app_config.colorscale_heatmap_individual_analysis))
   .domain(app_config.colorscale_domain);
 
+var colorScaleDiscrete = d3.scaleOrdinal(d3.schemeAccent);
   // ----- showing color legend ------
   // The legend code used from https://stackoverflow.com/a/64807612/2374707
   var legend = function ({
@@ -3011,13 +3019,18 @@ function color_gene_dimplot(gene){
   }else{
     gene_colors = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => getSpotExpressions(samp, el.barcode, gene))).flat()
     point_text = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => '<b>Sample:</b> '+samp+'<br><b>Cluster:</b> '+el.cluster+'</br><b> Barcode:</b>'+el.barcode+'</br><b>'+gene+':</b>'+ getSpotExpressions(samp, el.barcode, gene))).flat();
+
+    if(typeof gene_colors[0] !== "number"){
+      gene_colors = gene_colors.map(di => colorScaleDiscrete(di))
+      gene = "discrete";
+    }
   }
     
     Plotly.animate('dimplots', {
       data: [{marker:{
         color :gene_colors,
         colorscale: 'Portland',
-        showscale: gene !== null,
+        showscale: gene !== null & gene !== "discrete",
         colorbar:{
           thickness:10,
           len: 0.5
@@ -3037,7 +3050,7 @@ function color_gene_dimplot(gene){
                 }
           }
         );
-  if(gene !== null){
+  if(gene !== null & gene !== "discrete"){
     Plotly.animate('dimplots', {
       data: [{marker:{
         showscale: true}

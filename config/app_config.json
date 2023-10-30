@@ -14,6 +14,7 @@
  "data_file_name_sample_info":"sample_info.csv",
  "image_file_name_high_resolution":"tissue_hires_image.png",
  "data_cluster_column": "seurat_clusters",
+ "meta_key": "META/",
  "dim_plot":"umap",
  "colorscale_heatmap_individual_analysis":"interpolateYlOrRd",
  "colorscale_heatmap_group_analysis":"BuYlRd",
