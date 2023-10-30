@@ -89,14 +89,14 @@ var getSpotExpressions = function (_sample_id, _barcode, _gene) {
         if (meta_res.length === 1 & typeof meta_res[0] === "number") {
           return (parseFloat(meta_res[0]));
         } else {
-          return (0)
+          return (0);
         }
       }
       else {
-        return (0)
+        return (0);
       }
     } else {
-      return (0)
+      return ({});
     }
   } else {
     return (0);
@@ -317,10 +317,10 @@ var loadData = function (samples) {
                     var b = sample_barcodes[b_idx]//barcode
                     var g = sample_genes[g_idx] //gene
                     if (b in spotExpressions_sub) {
-                        spotExpressions_sub[b][g] = Number(item[2])
+                        spotExpressions_sub[b][g] = Number(item[2]);
                     } else {
                       spotExpressions_sub[b] = {}
-                      spotExpressions_sub[b][g] = Number(item[2])
+                      spotExpressions_sub[b][g] = Number(item[2]);
                     }
                   },
                   complete:function(){
