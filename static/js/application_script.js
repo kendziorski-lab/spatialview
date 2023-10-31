@@ -1116,7 +1116,7 @@ var colorScale = d3.scaleSequential()
   .interpolator(eval("d3." + app_config.colorscale_heatmap_individual_analysis))
   .domain(app_config.colorscale_domain);
 
-var colorScaleDiscrete = d3.scaleOrdinal(d3.schemeAccent);
+var colorScaleDiscrete = d3.scaleOrdinal(d3.schemeCategory10);
   // ----- showing color legend ------
   // The legend code used from https://stackoverflow.com/a/64807612/2374707
   var legend = function ({
@@ -1962,7 +1962,7 @@ var prepareDataBox = function (gene) {
     });
 
     //removing sampleComapre_ from each ids and making unique array
-    ids = ids.map(d => { return d.substr(14) });
+    ids = ids.map(d => { return d.substring(14) });
     ids = [...new Set(ids)];
 
     var x_data = [];
@@ -2028,8 +2028,30 @@ var getClusterMeanExpr = function (samp_id, clust_id, gene) {
   return (meanExpr)
 }
 
-var prepareDataGrpHeat = function (gene) {
+var getGroupSamples = function(){
+  let num_groups = d3.select("#numGroups").property("value");
+  var x_data = [];
+  var grp_elms_count = [];
+  var cnt = 0;
 
+  for (let i = 1; i <= num_groups; i++) {
+    const parent = document.getElementById("compGroupSel" + i);
+
+    const children = Array.from(parent.children);
+    cnt = cnt + children.length;
+    grp_elms_count.push(cnt);
+    var ids = children.map(element => {
+      return element.id;
+    });
+    //removing sampleComapre_ from each ids and making unique array
+    ids = ids.map(d => { return d.substring(14) });
+    ids = [...new Set(ids)];
+    x_data.push(ids);
+  }
+  return(x_data);
+}
+
+var prepareDataGrpHeat = function (gene) {
   let num_groups = d3.select("#numGroups").property("value");
   var grpHeatData = [];
   var x_data = [];
@@ -2046,7 +2068,7 @@ var prepareDataGrpHeat = function (gene) {
     });
 
     //removing sampleComapre_ from each ids and making unique array
-    ids = ids.map(d => { return d.substr(14) });
+    ids = ids.map(d => { return d.substring(14) });
     ids = [...new Set(ids)];
 
     x_data = x_data.concat(ids);
@@ -2095,14 +2117,15 @@ var prepareDataGrpHeat = function (gene) {
 
   grpHeatData.push({
     z: z_data,
-    x: x_data,
+    x: [...Array(x_data.length).keys()],
     y: y_data,
     text: text,
     type: 'heatmap',
     colorscale: app_config.colorscale_heatmap_group_analysis,
     hoverinfo: 'text',
-    hoverongaps: true
+    hoverongaps: false
   })
+
   var annotations = []
   for (var i = 0; i < grp_elms_count.length - 1; i++) {
     var lns = {
@@ -2119,7 +2142,35 @@ var prepareDataGrpHeat = function (gene) {
     };
     annotations.push(lns);
   }
-  return { 'data': grpHeatData, 'annotations': annotations };
+
+  var layout = {
+    title: "Expr. Distribution: " + gene,
+    yaxis: {
+      title: 'Clusters',
+      ticks: '',
+      autosize: true,
+      showticklabels: true,
+      type: 'category',
+    },
+    xaxis: {
+      title: '',
+      ticks: '',
+      side: 'top',
+      type: 'category',
+      showticklabels: true,
+      tickmode: 'array',
+      ticktext: x_data,
+      tickvals: [...Array(x_data.length).keys()]
+    },
+    shapes: annotations
+  }
+
+  var plotly_config = {
+    displaylogo: true,
+    responsive: true
+  }
+
+  return { 'data': grpHeatData, 'layout': layout, 'config': plotly_config};
 }
 
 var groupDatavizHeatPlot = document.getElementById('groupDatavizHeat');
@@ -2141,7 +2192,7 @@ var prepareStatsData = function (gene, d) {
     });
 
     //removing sampleComapre_ from each ids and making unique array
-    ids = ids.map(d => { return d.substr(14) });
+    ids = ids.map(d => { return d.substring(14) });
     ids = [...new Set(ids)];
 
     let x_data_grp = [];
@@ -2188,7 +2239,7 @@ var prepareStatsDataPsudoBulk = function (gene, d) {
     });
 
     //removing sampleComapre_ from each ids and making unique array
-    ids = ids.map(d => { return d.substr(14) });
+    ids = ids.map(d => { return d.substring(14) });
     ids = [...new Set(ids)];
 
     let x_data_grp = [];
@@ -2229,7 +2280,7 @@ var prepareStatsDataSingleGroup = function (gene, d) {
   });
 
   //removing sampleComapre_ from each ids and making unique array
-  ids = ids.map(d => { return d.substr(14) });
+  ids = ids.map(d => { return d.substring(14) });
   ids = [...new Set(ids)];
 
   var sel_grp = [];
@@ -2357,9 +2408,10 @@ var updateCompStatInfo = function (compData, gene, clusterName) {
 
   } else if (ngrp > 1 & compData.length >= 2) {
     table.rows[0].cells[0].innerHTML = 'Welch Two Sample t-test';
+    const current_group_samples = getGroupSamples();
     for (let i = 0; i < ngrp - 1; i++) {
       for (let j = i + 1; j < ngrp; j++) {
-        testType = 'Group ' + (i + 1) + ' vs. Group ' + (j + 1);
+        testType = 'Group ' + (i + 1) + ' ['+ current_group_samples[i].join() +'] <br>vs.<br> Group ' + (j + 1)+' ['+current_group_samples[j].join()+']';
 
         //Need at least 2 samples for testing and at least one of the group has 3 or more samples.
         if ((compData[i].length >= 3 & compData[j].length >= 2) | (compData[i].length >= 2 & compData[j].length >= 3)) {
@@ -2471,6 +2523,7 @@ async function t_test(gene, d) {
 
   } else if (ngrp > 1 & compData.length >= 2) {
     var test_results = [];
+    const current_group_samples = getGroupSamples();
     for (let i = 0; i < ngrp - 1; i++) {
       for (let j = i + 1; j < ngrp; j++) {
         if ((compData[i].length >= 3 & compData[j].length >= 2) | (compData[i].length >= 2 & compData[j].length >= 3)) {
@@ -2505,7 +2558,7 @@ async function t_test(gene, d) {
           pVal = precision(pVal);
           df = precision(df);
 
-          testType = 'Group ' + (i + 1) + ' vs. Group ' + (j + 1);
+          testType = 'Group ' + (i + 1) + ' ['+ current_group_samples[i].join() +'] vs. Group ' + (j + 1)+' ['+current_group_samples[j].join()+']';
           test_results.push({
             'Gene': gene,
             'Cluster': clust_name,
@@ -2524,17 +2577,30 @@ async function t_test(gene, d) {
 }
 
 async function t_test_allgenes() {
+  var test_process = 0;
+  var test_process_show = 0;
   var de_result_array = [];
   const clust_ks = Object.keys(cluster_names).sort((a, b) => a.localeCompare(b, 'en', { numeric: true }))
   for (let k = 0; k < clust_ks.length; k++) {
     for (let g_i = 0; g_i < sampleGenes.length; g_i++) {
       test_res = await t_test(sampleGenes[g_i], k);
 
+      test_process = test_process + 1
+      test_process_show = ( test_process *100)/(clust_ks.length * sampleGenes.length);
+      $("#tTestProgress").css("width",test_process_show+"%");
+      $("#tTestProgress").text(test_process_show+"%");
+
       if (test_res !== null) {
         de_result_array = [...de_result_array, ...test_res];
       }
+
+      
+    
+
     }
   }
+  // $("#tTestProgressBG").hide();
+
   // download csv using papa papa parser
   //https://codepen.io/anon/pen/Oovegj
   var csv = Papa.unparse(de_result_array);
@@ -2566,7 +2632,7 @@ var runDETest = function () {
     var ids = children.map(element => {
       return element.id;
     });
-    ids = ids.map(d => { return d.substr(14) });
+    ids = ids.map(d => { return d.substring(14) });
     ids = [...new Set(ids)];
     samplesInGroups.push(ids.length);
   }
@@ -2586,42 +2652,25 @@ var runDETest = function () {
     $('#dataAlertLoaded').hide();
   }, 2000);
 
+  $("#tTestProgressBG").show();
+  $("#tTestProgress").css("width","0%");
+  $("#tTestProgress").text("0%");
+
   t_test_allgenes().then(
     function () {
+      $("#tTestProgressBG").hide();
       console.log("File downloaded....");
     }
   )
 }
+
 var updateGrpHeat = function (gene) {
   global_current_gene = gene;
 
   if (gene === "") return;
 
-  const prepared_data = prepareDataGrpHeat(gene)
-  var layout = {
-    title: "Expr. Distribution: " + gene,
-    yaxis: {
-      title: 'Clusters',
-      ticks: '',
-      autosize: true,
-      showticklabels: true,
-      type: 'category',
-    },
-    xaxis: {
-      title: '',
-      ticks: '',
-      side: 'top',
-      type: 'category',
-      showticklabels: true
-    },
-    shapes: prepared_data.annotations
-  }
-
-  var plotly_config = {
-    displaylogo: false,
-    responsive: true
-  }
-  Plotly.newPlot('groupDatavizHeat', prepared_data.data, layout, plotly_config);
+  const prepared_data = prepareDataGrpHeat(gene);
+  Plotly.newPlot('groupDatavizHeat', prepared_data.data, prepared_data.layout, prepared_data.config);
 
   groupDatavizHeatPlot.on('plotly_hover', function (d) {
     $('#grpCompareStats').css("visibility", "visible");
@@ -2631,7 +2680,6 @@ var updateGrpHeat = function (gene) {
     const clust_name = cluster_names[k];
     updateCompStatInfo(grp_comp_data, gene, clust_name);
   })
-
   $('#grpCompareStats').css("visibility", "hidden");
 }
 
@@ -2640,8 +2688,6 @@ var removeGrpHeat = function () {
   groupDatavizDiv.innerHTML = "";
   global_current_gene = "";
 }
-
-
 
 updateGroupsNums(d3.select("#numGroups").property("value"));
 
@@ -2654,11 +2700,9 @@ var showSampleInfo = function (sampleId, e) {
 
   if (typeof sampleInfoData !== "undefined" & sampleInfoData !== null) {
 
-
     var table = document.createElement("table");
     //Add a header
     var header = document.createElement("tr");
-
     var idHeaderCell = document.createElement("th");
     var nameHeaderCell = document.createElement("th");
     var relevanceHeaderCell = document.createElement("th");
@@ -2666,14 +2710,12 @@ var showSampleInfo = function (sampleId, e) {
     header.appendChild(idHeaderCell);
     header.appendChild(nameHeaderCell);
     header.appendChild(relevanceHeaderCell);
-
     table.appendChild(header);
 
     //Add the rest of the data to the table
     for (var i = 0; i < Object.keys(sampleInfoData).length; i++) {
 
       var tr = document.createElement("tr");
-
       var probCell = document.createElement("td");
       var valCell = document.createElement("td");
 
@@ -2684,7 +2726,6 @@ var showSampleInfo = function (sampleId, e) {
 
       tr.appendChild(probCell);
       tr.appendChild(valCell);
-
       table.appendChild(tr);
     }
 
@@ -2731,7 +2772,6 @@ var dataloadedAlertOn = function (sampleName) {
   $('#' + sampleName).removeClass("dataloadingbox");
   $('#' + sampleName).addClass("border");
 }
-
 
 var searchSampleAnalysis = function () {
   g_serch = $("#searchSampleAnalysisTxt").val()
@@ -2871,6 +2911,8 @@ $("#dataInfoContent").load("config/data_location.html");
 //Also, if spot size or opacity changes, this function re-creates the dimentionality visualization.
 var reloadDimplot = function(){
 
+  $("#searchDimVizTxt").val("");
+  $("#dimColorBy").text("Clusters");
   $('#dim_switch').prop("checked", false);
 
   gloabl_all_barcodes = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => samp+'_'+el.barcode)).flat()
@@ -2926,7 +2968,8 @@ var reloadDimplot = function(){
       text:app_config.dim_plot +' - All samples'
     },
     margin:{
-      t:60
+      t:60,
+      b:10
     },
     // plot_bgcolor:"black",
     // paper_bgcolor:"#FFF3"
@@ -3011,6 +3054,12 @@ function highlight_sampl_dimplot(selSampleID){
 
 function color_gene_dimplot(gene){
 
+  if(gene === null){
+    $("#dimColorBy").text("Clusters");
+  }else{
+    $("#dimColorBy").text(gene);
+  }
+
   var gene_colors = null;
   var point_text = null;
   if(gene === null){
@@ -3018,7 +3067,7 @@ function color_gene_dimplot(gene){
     point_text = gloabl_all_point_clust;
   }else{
     gene_colors = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => getSpotExpressions(samp, el.barcode, gene))).flat()
-    point_text = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => '<b>Sample:</b> '+samp+'<br><b>Cluster:</b> '+el.cluster+'</br><b> Barcode:</b>'+el.barcode+'</br><b>'+gene+':</b>'+ getSpotExpressions(samp, el.barcode, gene))).flat();
+    point_text = Object.keys(dataAllPatients).map(samp => dataAllPatients[samp].map(el => '<b>Sample:</b> '+samp+'<br><b>Cluster:</b> '+el.cluster+'</br><b> Barcode:</b> '+el.barcode+'</br><b>'+gene+':</b> '+ getSpotExpressions(samp, el.barcode, gene))).flat();
 
     if(typeof gene_colors[0] !== "number"){
       gene_colors = gene_colors.map(di => colorScaleDiscrete(di))
@@ -3078,8 +3127,6 @@ function color_gene_dimplot(gene){
           }
         );
   }
-      
-  
 }
 
 function toggleDimPlot(switchSample = false) {
@@ -3123,7 +3170,6 @@ function toggleDimPlot(switchSample = false) {
             }
           );
 }
-
 
 // loading the csv reader for group tab
 window.onload = () => {
