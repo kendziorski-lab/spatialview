@@ -7,6 +7,10 @@ SpatialView is a web browser-based interactive application to visualize 10x spat
 
 **[Demo Application](https://www.biostat.wisc.edu/~kendzior/spatialviewdemo/)**
 
+
+**[User Guide](https://raw.githubusercontent.com/kendziorski-lab/kendziorski-lab.github.io/main/projects/spatialview/user_guide.pdf)**
+
+
 ## Installation
 Spatial Transciptomic (ST) data from 10x experiments can be visualized in SpatialView multiple ways.
 
