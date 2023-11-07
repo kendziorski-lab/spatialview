@@ -45,7 +45,7 @@
 <body>
 	<div class="scrolling-wrapper">
 		<div class="row d-flex justify-content-center" id="sampleImages">
-			<div class="column">
+			<div class="column ratio ratio-1x1">
 				<label for="dataPathSelect">
 					<!-- <img src="static/images/Spatial View-logos_transparent.png" id="loadSamples" /> -->
 					<img src="config/icon/icon.png" draggable="false" (dragstart)="false;" class="unselectable icon_img"/>
@@ -82,7 +82,7 @@
 					<div class="d-flex col-xs-4">
 						<i class='bi bi-vinyl' style="padding-left: 20px; padding-right: 5px;"
 						data-toggle="tooltip" data-placement="bottom"  title="Adjust spot size."></i>
-						<input type="range" class="form-range" min="1" max="5" value="3" step="0.5" id="pointRaius"
+						<input type="range" class="form-range" min="1" max="10" value="3" step="0.5" id="pointRaius"
 						data-toggle="tooltip" data-placement="bottom"  title="Adjust spot size.">
 					</div>
 					<div class="d-flex col-xs-4">
@@ -164,7 +164,7 @@
 							<label class="btn btn-warning" for="frozen">CLICK HERE TO UNFREEZE SELECTION</label>
 						</div>
 						<div class='col-2 icofont-duotone icofont-eraser icofont-2x pointer-click' id="eraserGeneSel"
-									onclick="removeExpressions()" data-toggle="tooltip" data-placement="right"  title="Clean gene selection">
+									onclick="removeExpressions()" data-toggle="tooltip" data-placement="right"  title="Clean gene/meta-data selection">
 						</div>
 					</div>
 				</div>
@@ -353,8 +353,12 @@
 							</div>
 							<div class="col-11 d-flex" id="colorLegend" style="padding-left: 15px;"></div>
 						</div>
+						<div class="row">
+							<div class="col-12">
+								<div id="spotExprViz" class = "justify-content-center align-items-center d-flex"></div>
+							</div>
+						</div>
 						
-						<div id="spotExprViz"></div>
 
 					</div>
 				</div>
@@ -425,7 +429,7 @@
 						<div class="col-3"></div>
 						<div class="col-6 justify-content-center align-items-center">
 							<div class="row">
-								<div class="col justify-content-center align-items-center">
+								<div class="col justify-content-center align-items-center d-flex">
 									<div id ="dimplots"></div>
 								</div>
 							</div>
@@ -692,7 +696,7 @@
 						<!-- <iframe class="embed-responsive-item" id="tutorial_link" src=""
 							allowfullscreen style="width: 400px; height: 250px;"></iframe> -->
 							<div class="row">
-							<iframe width="560" height="315" id="tutorial_link" src="" 
+							<iframe width="560" height="450" id="tutorial_link" src="" 
 							title="YouTube video player" frameborder="0" 
 							allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 						<p>Tutorial: Features of the application and how to use.</p>
