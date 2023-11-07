@@ -29,6 +29,16 @@ window.onbeforeunload = function () {
   return 'Are you sure? Your work will be lost. ';
 };
 
+//================== Window resize alert =================
+window.addEventListener('resize', function(){
+
+  $('#dataloadedAlert').html('Window resized. \n For optimal visualization, please reload the page.');
+  $('#dataAlertLoaded').show();
+    setTimeout(function () {
+      $('#dataAlertLoaded').hide();
+    }, 10000);
+    return null;
+});
 //================ Application Configuration ===============
 
 // First loading the configurations
@@ -113,6 +123,12 @@ var make_sparse_obj = function (obj) {
   return (obj)
 }
 
+// ====== sizing the elements based on window
+var center_img_width = parseInt($("#centerViz").css("width"));
+$("#clustInfo").css("height", center_img_width * 1);
+$("#clustinfoScroll").css("height", center_img_width * 1);
+
+
 /* Following function taken from https://stackoverflow.com/questions/24784302/wrapping-text-in-d3*/
 function wrap(text, width) {
   text.each(function () {
@@ -168,6 +184,7 @@ var loadData = function (samples) {
     img.setAttribute("draggable", true);
     img.setAttribute("ondragstart", "sampleDrag(event)");
     img.classList.add("icon_img");
+    img.classList.add("img-fluid");
 
     img.src = "data/" + data_id + "/" + app_config.image_file_name_high_resolution;
     item.appendChild(img);
@@ -395,9 +412,14 @@ var getGridData = function (sampleId) {
 }
 //---------------------------------------------------------------------
 
+var centerViz_w = parseInt($("#centerViz").css("width"));
+centerViz_w = Math.round(centerViz_w * 0.9);
+let opt_width = centerViz_w;
+d3.select("#pointRaius").property("value", opt_width/200);
+
 var margin = { top: 0, right: 0, bottom: 0, left: 0 },
-  width = 540 - margin.left - margin.right,
-  height = 540 - margin.top - margin.bottom;
+  width = opt_width - margin.left - margin.right,
+  height = opt_width - margin.top - margin.bottom;
 
 // append the svg object to the body of the page
 var svg = d3.select("#svg")
@@ -1022,11 +1044,13 @@ zoomImage = function (url) {
     var $container = $original.parent();
     $container.removeClass('hidden');
 
-    $container.css("width", Math.min($('#svg').height() * 2 / 3, $container.width()));
+    var available_width = parseInt($("#cards").css("width"));
+    $container.css("width", Math.min($('#svg').height() * 2 / 3, available_width));
     $container.css("height", $container.width());
 
-    var zoom_container_height = $container.height();
     var zoom_container_width = $container.width();
+    var zoom_container_height = $container.height();
+    
 
     // Thumbnail
     var offset = $(this).offset();
@@ -1097,9 +1121,11 @@ $("#showHideClustInfo").click(function () {
 });
 
 
-var marginHeatmap = { top: 2, right: 0, bottom: 0, left: 25 },
-  widthHeatmap = 300 - marginHeatmap.left - marginHeatmap.right,
-  heightHeatmap = 400 - marginHeatmap.top - marginHeatmap.bottom;
+var left_heatmap_width = parseInt($("#spotExprViz").css("width"));
+left_heatmap_width = 0.8 * left_heatmap_width
+var marginHeatmap = { top: 5, right: 0, bottom: 0, left: 25 },
+  widthHeatmap = left_heatmap_width - marginHeatmap.left - marginHeatmap.right,
+  heightHeatmap = left_heatmap_width * 1.5 - marginHeatmap.top - marginHeatmap.bottom;
 
 // append the svg object to the body of the page
 var svgHeatmap = d3.select("#spotExprViz")
@@ -1119,12 +1145,13 @@ var colorScale = d3.scaleSequential()
 var colorScaleDiscrete = d3.scaleOrdinal(d3.schemeCategory10);
   // ----- showing color legend ------
   // The legend code used from https://stackoverflow.com/a/64807612/2374707
+  
   var legend = function ({
     color,
     title,
     legendContainer,
     tickSize = 6,
-    width = 320,
+    width = left_heatmap_width,
     height = 30 + tickSize,
     marginTop = 10,
     marginRight = 5,
@@ -2932,6 +2959,11 @@ var reloadDimplot = function(){
   var dim_mapping_scale_y = d3.scaleLinear().domain([dim_range_min_y,dim_range_max_y]).range([0,global_spatial_cor_range]);
   global_dim_x = global_dim_x.map(v => dim_mapping_scale_x(v));
   global_dim_y = global_dim_y.map(v => dim_mapping_scale_y(v));
+
+  
+  // const dimplots_width = parseInt($("#dimplots").css("width"));
+  // console.log(dimplots_width)
+  // $("#dimplots").css("height", dimplots_width);
 
   // var tsne_key
   Plotly.newPlot('dimplots', [{
