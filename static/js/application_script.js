@@ -1044,7 +1044,7 @@ zoomImage = function (url) {
     var $container = $original.parent();
     $container.removeClass('hidden');
 
-    var available_width = parseInt($("#cards").css("width"));
+    var available_width = parseInt($container.parent().css("width"));
     $container.css("width", Math.min($('#svg').height() * 2 / 3, available_width));
     $container.css("height", $container.width());
 
@@ -3175,15 +3175,17 @@ function toggleDimPlot(switchSample = false) {
     dim_name = "spatial";
   }
   var new_dim_data = shuffleInPlace(dim_name);
+
+  let dimToggleDuration_ = parseInt($('#dimToggleDuration').prop("max")) + parseInt($('#dimToggleDuration').prop("min")) - parseInt($('#dimToggleDuration').prop("value"))
   Plotly.animate('dimplots', {
     data: [new_dim_data.data]
   },
         {transition: {
-                duration: $('#dimToggleDuration').prop("value"),
+                duration: dimToggleDuration_,
                 easing: 'linear'
               },
         frame :{
-                duration:$('#dimToggleDuration').prop("value"),
+                duration:dimToggleDuration_,
                 redraw:false
               }
         }
