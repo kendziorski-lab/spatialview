@@ -1,7 +1,7 @@
 # SpatialView
 
 SpatialView is a web browser-based interactive application to visualize 10x spatial trascriptomics data.
-(paper link: *pending publication*).
+(paper link: https://doi.org/10.1093/bioinformatics/btae117 ).
 
 ![](spatialview_screenshot.png)
 
