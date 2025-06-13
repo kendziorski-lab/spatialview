@@ -5,8 +5,9 @@ SpatialView is a web browser-based interactive application to visualize 10x spat
 
 ![](spatialview_screenshot.png)
 
-**[Demo Application](https://www.biostat.wisc.edu/~kendzior/spatialviewdemo/)**
+**[Demo Application - Cancer micro environment](https://www.biostat.wisc.edu/~kendzior/spatialviewdemo/)**
 
+**[Demo Application - Tissue repair](https://www.biostat.wisc.edu/~cmohanty2/spatialview-demo/tissue-repair/)**
 
 **[User Guide](https://raw.githubusercontent.com/kendziorski-lab/kendziorski-lab.github.io/main/projects/spatialview/user_guide.pdf)**
 
