@@ -12,10 +12,7 @@ SpatialView is a web browser-based interactive application to visualize 10x spat
 **[User Guide](https://raw.githubusercontent.com/kendziorski-lab/kendziorski-lab.github.io/main/projects/spatialview/user_guide.pdf)**
 
 **Citation**  
-Chitrasen Mohanty, Aman Prasad, Lingxin Cheng, Lisa M Arkin, Bridget E Shields, Beth Drolet, Christina Kendziorski.  
-*SpatialView: an interactive web application for visualization of multiple samples in spatial transcriptomics experiments*.  
-**Bioinformatics**, Volume 40, Issue 3, March 2024, btae117.  
-[https://doi.org/10.1093/bioinformatics/btae117](https://doi.org/10.1093/bioinformatics/btae117)
+Chitrasen Mohanty, Aman Prasad, Lingxin Cheng, Lisa M Arkin, Bridget E Shields, Beth Drolet, Christina Kendziorski. *SpatialView: an interactive web application for visualization of multiple samples in spatial transcriptomics experiments*. **Bioinformatics**, Volume 40, Issue 3, March 2024, btae117.[https://doi.org/10.1093/bioinformatics/btae117](https://doi.org/10.1093/bioinformatics/btae117)
 
 ## Installation
 Spatial Transciptomic (ST) data from 10x experiments can be visualized in SpatialView multiple ways.
